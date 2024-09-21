@@ -1,0 +1,293 @@
+// main.go
+package main
+
+import (
+	"fmt"
+	"log"
+	"tln-backend/config"
+	"tln-backend/internal/app"
+	"tln-backend/internal/infrastructure/database"
+	"tln-backend/internal/infrastructure/server"
+)
+
+func main() {
+	// Load configuration
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("Failed to load configuration: %v", err)
+	}
+
+	// Initialize database
+	db, err := database.NewDatabase(cfg.Database)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+
+	// Initialize application
+	application, err := app.NewApplication(cfg, db)
+	if err != nil {
+		log.Fatalf("Failed to initialize application: %v", err)
+	}
+
+	// Initialize and start server
+	srv := server.NewServer(cfg.Server, application.Handlers())
+	address := fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port)
+	log.Printf("Starting server on %s", address)
+	if err := srv.Start(address); err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
+}
+
+// internal/app/app.go
+package app
+
+import (
+	"gorm.io/gorm"
+	"tln-backend/config"
+	"tln-backend/internal/handlers"
+	"tln-backend/internal/middleware"
+	"tln-backend/internal/repositories"
+	"tln-backend/internal/services"
+	"tln-backend/internal/usecases"
+)
+
+type Application struct {
+	cfg      *config.Config
+	handlers *handlers.Handlers
+}
+
+func NewApplication(cfg *config.Config, db *gorm.DB) (*Application, error) {
+	// Initialize repositories
+	repos := repositories.NewRepositories(db)
+
+	// Initialize services
+	svcs := services.NewServices()
+
+	// Initialize usecases
+	uc := usecases.NewUsecases(repos, svcs)
+
+	// Initialize middleware
+	mw := middleware.NewMiddleware(repos.User)
+
+	// Initialize handlers
+	h := handlers.NewHandlers(uc, mw)
+
+	return &Application{
+		cfg:      cfg,
+		handlers: h,
+	}, nil
+}
+
+func (a *Application) Handlers() *handlers.Handlers {
+	return a.handlers
+}
+
+// internal/infrastructure/server/server.go
+package server
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
+	"tln-backend/config"
+	"tln-backend/internal/handlers"
+)
+
+type Server struct {
+	app      *fiber.App
+	handlers *handlers.Handlers
+	config   *config.ServerConfig
+}
+
+func NewServer(cfg *config.ServerConfig, h *handlers.Handlers) *Server {
+	app := fiber.New()
+	app.Use(logger.New())
+	app.Use(recover.New())
+	app.Use(cors.New())
+
+	return &Server{
+		app:      app,
+		handlers: h,
+		config:   cfg,
+	}
+}
+
+func (s *Server) registerRoutes() {
+	api := s.app.Group("/api/v1")
+
+	// User routes
+	users := api.Group("/users")
+	users.Get("/:id", s.handlers.User.GetByID)
+	users.Put("/:id", s.handlers.User.Update)
+	users.Delete("/:id", s.handlers.User.Delete)
+
+	// Auth routes
+	auth := api.Group("/auth")
+	auth.Post("/register", s.handlers.Auth.Register)
+	auth.Post("/login", s.handlers.Auth.Login)
+
+	// Payment routes
+	payments := api.Group("/payments")
+	payments.Post("/promptpay", s.handlers.Payment.PromptPay)
+
+	// ... other routes
+}
+
+func (s *Server) Start(address string) error {
+	s.registerRoutes()
+	return s.app.Listen(address)
+}
+
+// internal/handlers/handlers.go
+package handlers
+
+import (
+	"tln-backend/internal/middleware"
+	"tln-backend/internal/usecases"
+)
+
+type Handlers struct {
+	User    *UserHandler
+	Auth    *AuthHandler
+	Payment *PaymentHandler
+}
+
+func NewHandlers(uc *usecases.Usecases, mw *middleware.Middleware) *Handlers {
+	return &Handlers{
+		User:    NewUserHandler(uc.User),
+		Auth:    NewAuthHandler(uc.Auth),
+		Payment: NewPaymentHandler(uc.Payment),
+	}
+}
+
+// ... (other handler files)
+
+// internal/middleware/middleware.go
+package middleware
+
+import (
+	"github.com/gofiber/fiber/v2"
+	"tln-backend/internal/repositories"
+)
+
+type Middleware struct {
+	JWTAuth fiber.Handler
+}
+
+func NewMiddleware(userRepo repositories.UserRepository) *Middleware {
+	return &Middleware{
+		JWTAuth: JWTAuthMiddleware(userRepo),
+	}
+}
+
+func JWTAuthMiddleware(userRepo repositories.UserRepository) fiber.Handler {
+	// ... (implementation)
+}
+
+// internal/repositories/repositories.go
+package repositories
+
+import "gorm.io/gorm"
+
+type Repositories struct {
+	User    UserRepository
+	Auth    AuthRepository
+	Payment PaymentRepository
+}
+
+func NewRepositories(db *gorm.DB) *Repositories {
+	return &Repositories{
+		User:    NewUserRepository(db),
+		Auth:    NewAuthRepository(db),
+		Payment: NewPaymentRepository(db),
+	}
+}
+
+// ... (other repository files)
+
+// internal/usecases/usecases.go
+package usecases
+
+import (
+	"tln-backend/internal/repositories"
+	"tln-backend/internal/services"
+)
+
+type Usecases struct {
+	User    *UserUsecase
+	Auth    *AuthUsecase
+	Payment *PaymentUsecase
+}
+
+func NewUsecases(repos *repositories.Repositories, svcs *services.Services) *Usecases {
+	return &Usecases{
+		User:    NewUserUsecase(repos.User),
+		Auth:    NewAuthUsecase(repos.Auth, svcs.Hash),
+		Payment: NewPaymentUsecase(repos.Payment, svcs.Payment),
+	}
+}
+
+// ... (other usecase files)
+
+// internal/services/services.go
+package services
+
+type Services struct {
+	Hash    HashService
+	Payment PaymentService
+}
+
+func NewServices() *Services {
+	return &Services{
+		Hash:    NewHashService(),
+		Payment: NewPaymentService(),
+	}
+}
+
+// ... (other service files)
+
+// config/config.go
+package config
+
+import (
+	"github.com/joho/godotenv"
+	"os"
+)
+
+type Config struct {
+	Server   *ServerConfig
+	Database *DatabaseConfig
+}
+
+type ServerConfig struct {
+	Host string
+	Port string
+}
+
+type DatabaseConfig struct {
+	// ... database configuration fields
+}
+
+func Load() (*Config, error) {
+	if err := godotenv.Load(); err != nil {
+		return nil, err
+	}
+
+	return &Config{
+		Server: &ServerConfig{
+			Host: getEnv("SERVER_HOST", "localhost"),
+			Port: getEnv("SERVER_PORT", "3000"),
+		},
+		Database: &DatabaseConfig{
+			// ... load database configuration
+		},
+	}, nil
+}
+
+func getEnv(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
