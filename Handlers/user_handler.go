@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gofiber/fiber/v2"
 	entities "tln-backend/Entities"
+	entitiesDtos "tln-backend/Entities/dtos"
 	"tln-backend/Usecase"
 )
 
@@ -18,14 +19,15 @@ func NewUserHandler(uc *Usecase.UserUseCase) *UserHandler {
 }
 
 // CreateUser godoc
-// @Summary Create a new user
-// @Description Create a new user with the provided details
+// @Summary Create a user
+// @Description Create a new user with the provided data
 // @Tags users
 // @Accept  json
 // @Produce  json
-// @Param user body entities.User true "User data"
-// @Success 201 {object} entities.User
+// @Param user body entities.RegisterRequest true "User data"
+// @Success 201 {object} entities.RegisterRequest
 // @Failure 400 {object} string "Invalid input"
+// @Failure 409 {object} string "Username already exists"
 // @Failure 500 {object} string "Internal server error"
 // @Router /users [post]
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
@@ -55,9 +57,8 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 // @Param id path string true "User ID"
 // @Success 200 {object} string "User deleted successfully"
 // @Failure 403 {object} string "You are not authorized to delete this user"
-// @Failure 500 {object} string "Internal server error"
+// @Failure 500 {object} string "Failed to delete user"
 // @Router /users/{id} [delete]
-
 func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 
 	userIdFromToken := c.Locals("userID").(string)
@@ -80,5 +81,47 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "User deleted successfully",
 		"user_id": userIdToDelete,
+	})
+}
+
+// GetUserByID godoc
+// @Summary Get a user by ID
+// @Description Get a user with the provided ID
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Success 200 {object} entitiesDtos.GetUserResponse
+// @Failure 404 {object} string "User not found"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /users/{id} [get]
+// @Security BearerAuth
+func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
+	userId := c.Params("id")
+
+	// Fetch user by ID
+	user, err := h.useCase.GetUserByID(userId)
+	if err != nil {
+		// Return a 404 status if the user is not found with a detailed error message
+		if err.Error() == "user not found" {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error":   "User not found",
+				"message": "No user found with the provided ID",
+				"data":    entitiesDtos.GetUserResponse{},
+			})
+		}
+
+		// On internal server error, return a 500 status with a detailed error message
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Internal Server Error",
+			"message": err.Error(),
+			"data":    entitiesDtos.GetUserResponse{},
+		})
+	}
+
+	// Return the user data if found with a 200 status
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message": "User found successfully",
+		"data":    user,
 	})
 }

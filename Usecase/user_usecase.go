@@ -3,6 +3,7 @@ package Usecase
 import (
 	"fmt"
 	entities "tln-backend/Entities"
+	entitiesDtos "tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
 )
 
@@ -26,7 +27,7 @@ func (uc *UserUseCase) CreateUser(registerUser *entities.RegisterRequest) error 
 	return uc.repo.CreateUser(&newVendor)
 }
 
-func (uc *UserUseCase) GetUserByID(id string) (*entities.Vendor, error) {
+func (uc *UserUseCase) GetUserByID(id string) (*entitiesDtos.GetUserResponse, error) {
 	return uc.repo.GetUserByID(id)
 }
 

@@ -15,7 +15,6 @@ func NewMarketProvider(useCase *Usecase.ProviderUseCase) *MarketProvider {
 	return &MarketProvider{useCase: useCase}
 }
 
-// CreateProvider creates a new market provider and handles errors appropriately.
 func (uc *MarketProvider) CreateProvider(c *fiber.Ctx) error {
 	var marketProvider entitiesDtos.MarketProviderRequest
 
@@ -34,7 +33,6 @@ func (uc *MarketProvider) CreateProvider(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusCreated).JSON(createdProvider)
 }
 
-// UpdateProvider updates an existing market provider and handles errors appropriately.
 func (uc *MarketProvider) UpdateProvider(c *fiber.Ctx) error {
 	var marketProvider entities.MarketProvider
 

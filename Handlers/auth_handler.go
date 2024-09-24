@@ -49,9 +49,20 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		"status":       "success",
 		"message":      "Login successful",
 		"access_token": response.AccessToken,
+		"vendor_id":    response.VendorID,
 	})
 }
 
+// Register godoc
+// @Summary Register
+// @Description Register a new user with the provided data
+// @Tags auth
+// @Accept  json
+// @Produce  json
+// @Param register body entities.RegisterRequest true "User data"
+// @Success 200 {object} string "User registered successfully"
+// @Failure 400 {object} string "Failed to register user"
+// @Router /auth/register [post]
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var req entities.RegisterRequest
 

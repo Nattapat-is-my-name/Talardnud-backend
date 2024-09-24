@@ -14,6 +14,18 @@ func NewSlotHandler(useCase *Usecase.SlotUseCase) *SlotHandler {
 	return &SlotHandler{useCase: useCase}
 }
 
+// CreateSlot godoc
+// @Summary Create a slot
+// @Description Create a new slot with the provided data
+// @Tags slots
+// @Accept  json
+// @Produce  json
+// @Param slot body entitiesDtos.SlotRequest true "Slot data"
+// @Success 201 {object} entitiesDtos.SlotResponse
+// @Failure 400 {object} string "Invalid input"
+// @Failure 409 {object} string "Slot already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /slots/create [post]
 func (h *SlotHandler) CreateSlot(c *fiber.Ctx) error {
 	var slotReq entitiesDtos.SlotRequest
 

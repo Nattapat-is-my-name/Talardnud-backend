@@ -44,7 +44,11 @@ func (repo *AuthRepository) Login(usernameOrEmail, password string) (entities.Lo
 		return entities.LoginResponse{}, err
 	}
 
-	return token, nil
+	return entities.LoginResponse{
+		AccessToken: token.AccessToken,
+		VendorID:    user.ID,
+	}, nil
+
 }
 
 // CheckPasswordHash checks if the provided password matches the hashed password.

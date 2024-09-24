@@ -1,11 +1,11 @@
 package Server
 
 import (
+	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/gofiber/swagger"
 	"tln-backend/Handlers"
 	middleware "tln-backend/Middlewares"
 	"tln-backend/Repository"
@@ -30,6 +30,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 
 	userGroup := v1.Group("/Users", authMiddleware)
 	userGroup.Delete("/:id", allHandlers.UserHandler.DeleteUser)
+	userGroup.Get("/:id", allHandlers.UserHandler.GetUserByID)
 
 	providerGroup := v1.Group("/Providers")
 	providerGroup.Post("/create", allHandlers.MarketProvider.CreateProvider)
@@ -51,7 +52,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 
 	//paymentGroup := v1.Group("/Payments", authMiddleware)
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)
-	//
+
 	ScbResponseGroup := v1.Group("/Scb")
 	ScbResponseGroup.Post("/confirm", allHandlers.PaymentHandler.ScbConfirmation)
 

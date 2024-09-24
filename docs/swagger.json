@@ -1,0 +1,737 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API user management Server by Fiber | Doc by Swagger.",
+        "title": "Talardnad API",
+        "contact": {
+            "name": "admin",
+            "url": "http://subalgo.com/support",
+            "email": "admin@subalgo.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0"
+    },
+    "host": "localhost:3000",
+    "basePath": "/api/v1",
+    "paths": {
+        "/auth/login": {
+            "post": {
+                "description": "Login with the provided credentials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Login",
+                "parameters": [
+                    {
+                        "description": "Login data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entities.LoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.LoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/register": {
+            "post": {
+                "description": "Register a new user with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entities.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User registered successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to register user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/cancel": {
+            "post": {
+                "description": "Cancel a booking with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Cancel a booking",
+                "parameters": [
+                    {
+                        "description": "Booking data",
+                        "name": "booking",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CancelBookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Booking already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/create": {
+            "post": {
+                "description": "Create a new booking with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Create a booking",
+                "parameters": [
+                    {
+                        "description": "Booking data",
+                        "name": "booking",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Booking already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/create": {
+            "post": {
+                "description": "Create a new slot with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Create a slot",
+                "parameters": [
+                    {
+                        "description": "Slot data",
+                        "name": "slot",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SlotRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.SlotResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Slot already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Create a new user with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create a user",
+                "parameters": [
+                    {
+                        "description": "User data",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/entities.RegisterRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/entities.RegisterRequest"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Username already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get a user with the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Get a user by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.GetUserResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "User not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Delete a user with the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Delete a user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "User deleted successfully",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "403": {
+                        "description": "You are not authorized to delete this user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Failed to delete user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dtos.BookingDtos": {
+            "type": "object",
+            "properties": {
+                "ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
+        "dtos.BookingRequest": {
+            "type": "object",
+            "required": [
+                "amount",
+                "end_date",
+                "market_id",
+                "method",
+                "slot_id",
+                "start_date",
+                "vendor_id"
+            ],
+            "properties": {
+                "amount": {
+                    "description": "Required, amount to be paid",
+                    "type": "number"
+                },
+                "end_date": {
+                    "description": "Required, end of booking",
+                    "type": "string"
+                },
+                "market_id": {
+                    "description": "Required, selected by the user",
+                    "type": "string"
+                },
+                "method": {
+                    "description": "Required, payment method",
+                    "type": "string"
+                },
+                "slot_id": {
+                    "description": "Required, selected by the user",
+                    "type": "string"
+                },
+                "start_date": {
+                    "description": "Required, start of booking",
+                    "type": "string"
+                },
+                "vendor_id": {
+                    "description": "Required, selected by the user",
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.BookingResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "bookingDate": {
+                    "type": "string"
+                },
+                "endDate": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "promptPay": {
+                    "$ref": "#/definitions/dtos.PromptPayResponse"
+                },
+                "slotId": {
+                    "type": "string"
+                },
+                "startDate": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transaction": {
+                    "$ref": "#/definitions/dtos.TransactionResponse"
+                },
+                "vendorId": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.CancelBookingRequest": {
+            "type": "object",
+            "required": [
+                "booking_id"
+            ],
+            "properties": {
+                "booking_id": {
+                    "description": "The ID of the booking to be canceled.",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "Optional: The ID of the user requesting the cancellation.",
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.GetUserResponse": {
+            "type": "object",
+            "properties": {
+                "bookings": {
+                    "$ref": "#/definitions/dtos.BookingDtos"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.PromptPayResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "object",
+                    "properties": {
+                        "qrImage": {
+                            "type": "string"
+                        },
+                        "qrRawData": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "status": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "integer"
+                        },
+                        "description": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "dtos.SlotRequest": {
+            "type": "object",
+            "required": [
+                "end_time",
+                "market_id",
+                "name",
+                "price",
+                "size",
+                "start_time",
+                "status"
+            ],
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "market_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "slot_type": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.SlotResponse": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "market_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "slot_type": {
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.TransactionResponse": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "paymentId": {
+                    "type": "string"
+                },
+                "ref1": {
+                    "type": "string"
+                },
+                "ref2": {
+                    "type": "string"
+                },
+                "ref3": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transactionDate": {
+                    "type": "string"
+                },
+                "transactionId": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.LoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username_or_email"
+            ],
+            "properties": {
+                "password": {
+                    "description": "Password must be provided and at least 8 characters long",
+                    "type": "string",
+                    "minLength": 8
+                },
+                "username_or_email": {
+                    "description": "Accepts either username or email",
+                    "type": "string"
+                }
+            }
+        },
+        "entities.LoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "vendor_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "description": "Required, must be a valid email format",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Required, min 8 characters for password",
+                    "type": "string",
+                    "minLength": 8
+                },
+                "username": {
+                    "description": "Required, min 3, max 50 characters",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}

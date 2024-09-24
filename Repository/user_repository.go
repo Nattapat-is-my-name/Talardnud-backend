@@ -6,25 +6,48 @@ import (
 	"gorm.io/gorm"
 	"strings"
 	entities "tln-backend/Entities"
+	entitiesDtos "tln-backend/Entities/dtos"
 )
 
 type UserRepository struct {
 	db *gorm.DB
 }
 
-func (r *UserRepository) GetUserByID(id string) (*entities.Vendor, error) {
+func (r *UserRepository) GetUserByID(id string) (*entitiesDtos.GetUserResponse, error) {
 
 	id = strings.TrimSpace(id)
 
 	var user entities.Vendor
 	result := r.db.Where("id = ?", id).First(&user)
-
 	if result.Error != nil {
 		fmt.Println("no user found with ID: ", id)
 		return nil, result.Error
 	}
 
-	return &user, nil
+	var bookings []entities.Booking
+	bookingResult := r.db.Where("vendor_id = ?", id).Find(&bookings)
+	if bookingResult.Error != nil {
+		fmt.Println("no bookings found for user with ID: ", id)
+		return nil, bookingResult.Error
+	}
+
+	var bookingIDs []string
+	for _, booking := range bookings {
+		bookingIDs = append(bookingIDs, booking.ID)
+	}
+
+	getUserResponse := entitiesDtos.GetUserResponse{
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+		Bookings: entitiesDtos.BookingDtos{
+			IDs: bookingIDs,
+		},
+	}
+
+	return &getUserResponse, nil
 }
 
 func (r *UserRepository) UpdateUser(user *entities.Vendor) error {

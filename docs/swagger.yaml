@@ -1,0 +1,493 @@
+basePath: /api/v1
+definitions:
+  dtos.BookingDtos:
+    properties:
+      ids:
+        items:
+          type: string
+        type: array
+    type: object
+  dtos.BookingRequest:
+    properties:
+      amount:
+        description: Required, amount to be paid
+        type: number
+      end_date:
+        description: Required, end of booking
+        type: string
+      market_id:
+        description: Required, selected by the user
+        type: string
+      method:
+        description: Required, payment method
+        type: string
+      slot_id:
+        description: Required, selected by the user
+        type: string
+      start_date:
+        description: Required, start of booking
+        type: string
+      vendor_id:
+        description: Required, selected by the user
+        type: string
+    required:
+    - amount
+    - end_date
+    - market_id
+    - method
+    - slot_id
+    - start_date
+    - vendor_id
+    type: object
+  dtos.BookingResponse:
+    properties:
+      amount:
+        type: number
+      bookingDate:
+        type: string
+      endDate:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      promptPay:
+        $ref: '#/definitions/dtos.PromptPayResponse'
+      slotId:
+        type: string
+      startDate:
+        type: string
+      status:
+        type: string
+      transaction:
+        $ref: '#/definitions/dtos.TransactionResponse'
+      vendorId:
+        type: string
+    type: object
+  dtos.CancelBookingRequest:
+    properties:
+      booking_id:
+        description: The ID of the booking to be canceled.
+        type: string
+      user_id:
+        description: 'Optional: The ID of the user requesting the cancellation.'
+        type: string
+    required:
+    - booking_id
+    type: object
+  dtos.GetUserResponse:
+    properties:
+      bookings:
+        $ref: '#/definitions/dtos.BookingDtos'
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.PromptPayResponse:
+    properties:
+      data:
+        properties:
+          qrImage:
+            type: string
+          qrRawData:
+            type: string
+        type: object
+      status:
+        properties:
+          code:
+            type: integer
+          description:
+            type: string
+        type: object
+    type: object
+  dtos.SlotRequest:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      market_id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      size:
+        type: string
+      slot_type:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+    required:
+    - end_time
+    - market_id
+    - name
+    - price
+    - size
+    - start_time
+    - status
+    type: object
+  dtos.SlotResponse:
+    properties:
+      description:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: string
+      market_id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      size:
+        type: string
+      slot_type:
+        type: string
+      start_time:
+        type: string
+      status:
+        type: string
+    type: object
+  dtos.TransactionResponse:
+    properties:
+      amount:
+        type: number
+      id:
+        type: string
+      method:
+        type: string
+      paymentId:
+        type: string
+      ref1:
+        type: string
+      ref2:
+        type: string
+      ref3:
+        type: string
+      status:
+        type: string
+      transactionDate:
+        type: string
+      transactionId:
+        type: string
+    type: object
+  entities.LoginRequest:
+    properties:
+      password:
+        description: Password must be provided and at least 8 characters long
+        minLength: 8
+        type: string
+      username_or_email:
+        description: Accepts either username or email
+        type: string
+    required:
+    - password
+    - username_or_email
+    type: object
+  entities.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      vendor_id:
+        type: string
+    type: object
+  entities.RegisterRequest:
+    properties:
+      email:
+        description: Required, must be a valid email format
+        type: string
+      password:
+        description: Required, min 8 characters for password
+        minLength: 8
+        type: string
+      username:
+        description: Required, min 3, max 50 characters
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: admin@subalgo.com
+    name: admin
+    url: http://subalgo.com/support
+  description: API user management Server by Fiber | Doc by Swagger.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  title: Talardnad API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login with the provided credentials
+      parameters:
+      - description: Login data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/entities.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.LoginResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+      summary: Login
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided data
+      parameters:
+      - description: User data
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/entities.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User registered successfully
+          schema:
+            type: string
+        "400":
+          description: Failed to register user
+          schema:
+            type: string
+      summary: Register
+      tags:
+      - auth
+  /bookings/cancel:
+    post:
+      consumes:
+      - application/json
+      description: Cancel a booking with the provided data
+      parameters:
+      - description: Booking data
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CancelBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BookingResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "409":
+          description: Booking already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Cancel a booking
+      tags:
+      - bookings
+  /bookings/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new booking with the provided data
+      parameters:
+      - description: Booking data
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BookingResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "409":
+          description: Booking already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a booking
+      tags:
+      - bookings
+  /slots/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new slot with the provided data
+      parameters:
+      - description: Slot data
+        in: body
+        name: slot
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SlotRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.SlotResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "409":
+          description: Slot already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a slot
+      tags:
+      - slots
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user with the provided data
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/entities.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/entities.RegisterRequest'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "409":
+          description: Username already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a user
+      tags:
+      - users
+  /users/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a user with the provided ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User deleted successfully
+          schema:
+            type: string
+        "403":
+          description: You are not authorized to delete this user
+          schema:
+            type: string
+        "500":
+          description: Failed to delete user
+          schema:
+            type: string
+      summary: Delete a user
+      tags:
+      - users
+    get:
+      consumes:
+      - application/json
+      description: Get a user with the provided ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetUserResponse'
+        "404":
+          description: User not found
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

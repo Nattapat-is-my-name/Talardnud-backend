@@ -15,6 +15,18 @@ func NewBookingHandler(useCase *Usecase.BookingUseCase) *BookingHandler {
 	return &BookingHandler{useCase: useCase}
 }
 
+// CreateBooking godoc
+// @Summary Create a booking
+// @Description Create a new booking with the provided data
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param booking body entitiesDtos.BookingRequest true "Booking data"
+// @Success 200 {object} entitiesDtos.BookingResponse
+// @Failure 400 {object} string "Invalid input"
+// @Failure 409 {object} string "Booking already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/create [post]
 func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	var req entitiesDtos.BookingRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -42,6 +54,18 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	})
 }
 
+// CancelBooking godoc
+// @Summary Cancel a booking
+// @Description Cancel a booking with the provided data
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param booking body entitiesDtos.CancelBookingRequest true "Booking data"
+// @Success 200 {object} entitiesDtos.BookingResponse
+// @Failure 400 {object} string "Invalid input"
+// @Failure 409 {object} string "Booking already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/cancel [post]
 func (h *BookingHandler) CancelBooking(c *fiber.Ctx) error {
 	var req entitiesDtos.CancelBookingRequest
 	log.Printf("Raw request body: %s", c.Body())

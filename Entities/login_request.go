@@ -7,4 +7,5 @@ type LoginRequest struct {
 
 type LoginResponse struct {
 	AccessToken string `json:"access_token"`
+	VendorID    string `json:"vendor_id"`
 }
