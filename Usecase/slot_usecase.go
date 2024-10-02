@@ -53,3 +53,15 @@ func (su *SlotUseCase) CreateSlot(slotReq *entitiesDtos.SlotRequest) (*entities.
 
 	return createdSlot, nil
 }
+
+func (su *SlotUseCase) GetSlots(markerID string) ([]*entities.Slot, *entitiesDtos.ErrorResponse) {
+	slots, err := su.repo.GetSlots(markerID)
+	if err != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to retrieve slots: " + err.Error(),
+		}
+	}
+
+	return slots, nil
+}

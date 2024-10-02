@@ -84,24 +84,30 @@ const docTemplate = `{
                 "summary": "Register",
                 "parameters": [
                     {
-                        "description": "User data",
+                        "description": "Register request",
                         "name": "register",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/entities.RegisterRequest"
+                            "$ref": "#/definitions/dtos.RegisterRequest"
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "User registered successfully",
+                        "description": "OK",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/dtos.RegisterResponse"
                         }
                     },
                     "400": {
                         "description": "Failed to register user",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Email already exists",
                         "schema": {
                             "type": "string"
                         }
@@ -213,6 +219,94 @@ const docTemplate = `{
                 }
             }
         },
+        "/markets/create": {
+            "post": {
+                "description": "Create a new market",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Create a new market",
+                "parameters": [
+                    {
+                        "description": "Market object that needs to be created",
+                        "name": "market",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/markets/get": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Get all markets",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.GetListMarketResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/markets/get/{id}": {
+            "get": {
+                "description": "Get a market by ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Get a market by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/slots/create": {
             "post": {
                 "description": "Create a new slot with the provided data",
@@ -265,9 +359,9 @@ const docTemplate = `{
                 }
             }
         },
-        "/users": {
-            "post": {
-                "description": "Create a new user with the provided data",
+        "/slots/get/{id}": {
+            "get": {
+                "description": "Get all slots",
                 "consumes": [
                     "application/json"
                 ],
@@ -275,43 +369,26 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "slots"
                 ],
-                "summary": "Create a user",
+                "summary": "Get all slots",
                 "parameters": [
                     {
-                        "description": "User data",
-                        "name": "user",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/entities.RegisterRequest"
-                        }
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entities.RegisterRequest"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "409": {
-                        "description": "Username already exists",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dtos.SlotResponse"
+                            }
                         }
                     }
                 }
@@ -517,14 +594,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.GetListMarketResponse": {
+            "type": "object",
+            "properties": {
+                "market": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.MarketResponse"
+                    }
+                }
+            }
+        },
         "dtos.GetUserResponse": {
             "type": "object",
             "properties": {
                 "bookings": {
                     "$ref": "#/definitions/dtos.BookingDtos"
-                },
-                "created_at": {
-                    "type": "string"
                 },
                 "email": {
                     "type": "string"
@@ -532,10 +617,75 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
-                "updated_at": {
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MarketRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "close_time",
+                "name",
+                "open_time",
+                "provider_id"
+            ],
+            "properties": {
+                "address": {
+                    "description": "Required, address of the market",
                     "type": "string"
                 },
-                "username": {
+                "close_time": {
+                    "description": "Required, closing time in HH:mm format",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Optional, description of the market",
+                    "type": "string"
+                },
+                "image": {
+                    "description": "Optional, URL or path to the market image",
+                    "type": "string"
+                },
+                "latitude": {
+                    "description": "Optional, latitude coordinate",
+                    "type": "string"
+                },
+                "longitude": {
+                    "description": "Optional, longitude coordinate",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Required, name of the market",
+                    "type": "string"
+                },
+                "open_time": {
+                    "description": "Required, opening time in HH:mm format",
+                    "type": "string"
+                },
+                "provider_id": {
+                    "description": "Required, UUID of the provider",
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MarketResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "the data to be returned",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Market"
+                    }
+                },
+                "message": {
+                    "description": "message to accompany the response",
+                    "type": "string"
+                },
+                "status": {
+                    "description": "success or error",
                     "type": "string"
                 }
             }
@@ -564,6 +714,55 @@ const docTemplate = `{
                             "type": "string"
                         }
                     }
+                }
+            }
+        },
+        "dtos.RegisterRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "phone_number",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "description": "Required, must be a valid email format",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Required, min 8 characters for password",
+                    "type": "string",
+                    "minLength": 8
+                },
+                "phone_number": {
+                    "description": "Required, adjust based on the expected format=",
+                    "type": "string",
+                    "maxLength": 15,
+                    "minLength": 10
+                },
+                "username": {
+                    "description": "Required, min 3, max 50 characters",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                }
+            }
+        },
+        "dtos.RegisterResponse": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },
@@ -678,6 +877,50 @@ const docTemplate = `{
                 }
             }
         },
+        "entities.Booking": {
+            "type": "object",
+            "properties": {
+                "booking_date": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "end_date": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "payment": {
+                    "$ref": "#/definitions/entities.Payment"
+                },
+                "slot": {
+                    "$ref": "#/definitions/entities.Slot"
+                },
+                "slot_id": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "vendor": {
+                    "$ref": "#/definitions/entities.Vendor"
+                },
+                "vendor_id": {
+                    "type": "string"
+                }
+            }
+        },
         "entities.LoginRequest": {
             "type": "object",
             "required": [
@@ -707,28 +950,277 @@ const docTemplate = `{
                 }
             }
         },
-        "entities.RegisterRequest": {
+        "entities.Market": {
             "type": "object",
-            "required": [
-                "email",
-                "password",
-                "username"
-            ],
             "properties": {
-                "email": {
-                    "description": "Required, must be a valid email format",
+                "address": {
                     "type": "string"
                 },
-                "password": {
-                    "description": "Required, min 8 characters for password",
-                    "type": "string",
-                    "minLength": 8
+                "close_time": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "details": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "string"
+                },
+                "longitude": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "open_time": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "provider_id": {
+                    "type": "string"
+                },
+                "slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Slot"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Payment": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "booking": {
+                    "$ref": "#/definitions/entities.Booking"
+                },
+                "booking_id": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "payment_date": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transactions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Transaction"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Slot": {
+            "type": "object",
+            "properties": {
+                "bookings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Booking"
+                    }
+                },
+                "column": {
+                    "type": "integer"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "market": {
+                    "$ref": "#/definitions/entities.Market"
+                },
+                "market_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "row": {
+                    "type": "integer"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "slot_type": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Stall": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Description of the stall",
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "description": "Image of the stall",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Name of the stall/store",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Type of the stall (food, clothing, etc.)",
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "vendor_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Transaction": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "payment": {
+                    "$ref": "#/definitions/entities.Payment"
+                },
+                "payment_id": {
+                    "type": "string"
+                },
+                "ref1": {
+                    "type": "string"
+                },
+                "ref2": {
+                    "type": "string"
+                },
+                "ref3": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "transaction_date": {
+                    "type": "string"
+                },
+                "transaction_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Vendor": {
+            "type": "object",
+            "properties": {
+                "bookings": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Booking"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deleted_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "last_name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "stalls": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Stall"
+                    }
+                },
+                "updated_at": {
+                    "type": "string"
                 },
                 "username": {
-                    "description": "Required, min 3, max 50 characters",
-                    "type": "string",
-                    "maxLength": 50,
-                    "minLength": 3
+                    "type": "string"
                 }
             }
         }

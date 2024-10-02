@@ -1,10 +1,8 @@
 package Handlers
 
 import (
-	"fmt"
 	"github.com/gofiber/fiber/v2"
-	entities "tln-backend/Entities"
-	entitiesDtos "tln-backend/Entities/dtos"
+	"tln-backend/Entities/dtos"
 	"tln-backend/Usecase"
 )
 
@@ -18,35 +16,35 @@ func NewUserHandler(uc *Usecase.UserUseCase) *UserHandler {
 	return &UserHandler{useCase: uc}
 }
 
-// CreateUser godoc
-// @Summary Create a user
-// @Description Create a new user with the provided data
-// @Tags users
-// @Accept  json
-// @Produce  json
-// @Param user body entities.RegisterRequest true "User data"
-// @Success 201 {object} entities.RegisterRequest
-// @Failure 400 {object} string "Invalid input"
-// @Failure 409 {object} string "Username already exists"
-// @Failure 500 {object} string "Internal server error"
-// @Router /users [post]
-func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-	var user entities.RegisterRequest
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
-	}
-
-	if err := h.useCase.CreateUser(&user); err != nil {
-		if err.Error() == "username already exists" {
-			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Username already exists"})
-		}
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
-	}
-
-	fmt.Println("User created: ", user)
-
-	return c.Status(fiber.StatusCreated).JSON(user)
-}
+//// CreateUser godoc
+//// @Summary Create a user
+//// @Description Create a new user with the provided data
+//// @Tags users
+//// @Accept  json
+//// @Produce  json
+//// @Param user body entities.RegisterRequest true "User data"
+//// @Success 201 {object} dtos.RegisterRequest
+//// @Failure 400 {object} string "Invalid input"
+//// @Failure 409 {object} string "Username already exists"
+//// @Failure 500 {object} string "Internal server error"
+//// @Router /users [post]
+//func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
+//	var user dtos.RegisterRequest
+//	if err := c.BodyParser(&user); err != nil {
+//		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+//	}
+//
+//	if err := h.useCase.CreateUser(&user); err != nil {
+//		if err.Error() == "username already exists" {
+//			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Username already exists"})
+//		}
+//		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
+//	}
+//
+//	fmt.Println("User created: ", user)
+//
+//	return c.Status(fiber.StatusCreated).JSON(user)
+//}
 
 // DeleteUser godoc
 // @Summary Delete a user
@@ -91,7 +89,7 @@ func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
 // @Accept  json
 // @Produce  json
 // @Param id path string true "User ID"
-// @Success 200 {object} entitiesDtos.GetUserResponse
+// @Success 200 {object} dtos.GetUserResponse
 // @Failure 404 {object} string "User not found"
 // @Failure 500 {object} string "Internal Server Error"
 // @Router /users/{id} [get]
@@ -107,7 +105,7 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
 				"error":   "User not found",
 				"message": "No user found with the provided ID",
-				"data":    entitiesDtos.GetUserResponse{},
+				"data":    dtos.GetUserResponse{},
 			})
 		}
 
@@ -115,13 +113,16 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error":   "Internal Server Error",
 			"message": err.Error(),
-			"data":    entitiesDtos.GetUserResponse{},
+			"data":    dtos.GetUserResponse{},
 		})
 	}
 
-	// Return the user data if found with a 200 status
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "User found successfully",
-		"data":    user,
-	})
+	response := dtos.GetUserResponse{
+		ID:       user.ID,
+		Username: user.Username,
+		Email:    user.Email,
+		Bookings: user.Bookings,
+	}
+
+	return c.Status(fiber.StatusOK).JSON(response)
 }

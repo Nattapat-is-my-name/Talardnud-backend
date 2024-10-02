@@ -26,6 +26,9 @@ func NewServer(userRepo *Repository.UserRepository) *Server {
 
 func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	authMiddleware := middleware.JWTAuthMiddleware(s.UserRepo)
+
+	//create endpoint
+
 	v1 := s.App.Group("/api/v1")
 
 	userGroup := v1.Group("/Users", authMiddleware)
@@ -36,8 +39,10 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	providerGroup.Post("/create", allHandlers.MarketProvider.CreateProvider)
 	providerGroup.Put("/update", allHandlers.MarketProvider.UpdateProvider)
 
-	marketGroup := v1.Group("/Markets", authMiddleware)
+	marketGroup := v1.Group("/Markets")
 	marketGroup.Post("/create", allHandlers.MarketHandler.CreateMarket)
+	marketGroup.Get("/get", allHandlers.MarketHandler.GetMarket)
+	marketGroup.Get("/get/:id", allHandlers.MarketHandler.GetMarketByID)
 
 	authGroup := v1.Group("/Auth")
 	authGroup.Post("/register", allHandlers.AuthHandler.Register)
@@ -49,6 +54,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 
 	slotGroup := v1.Group("/Slots")
 	slotGroup.Post("/create", allHandlers.SlotHandler.CreateSlot)
+	slotGroup.Get("/get/:id", allHandlers.SlotHandler.GetSlot)
 
 	//paymentGroup := v1.Group("/Payments", authMiddleware)
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)

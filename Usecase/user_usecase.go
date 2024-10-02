@@ -15,7 +15,7 @@ func NewUserUseCase(repo Interfaces.IUserRepository) *UserUseCase {
 	return &UserUseCase{repo: repo}
 }
 
-func (uc *UserUseCase) CreateUser(registerUser *entities.RegisterRequest) error {
+func (uc *UserUseCase) CreateUser(registerUser *entitiesDtos.RegisterRequest) error {
 	var newVendor entities.Vendor
 
 	newVendor = entities.Vendor{

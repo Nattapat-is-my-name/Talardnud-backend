@@ -3,6 +3,7 @@ package Handlers
 import (
 	"github.com/gofiber/fiber/v2"
 	entities "tln-backend/Entities"
+	"tln-backend/Entities/dtos"
 	"tln-backend/Usecase"
 )
 
@@ -32,7 +33,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "Invalid input",
-			"details": err.Error(),
+			"details": "Failed to parse login request",
 		})
 	}
 
@@ -41,7 +42,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"error":   "Login failed",
-			"details": err.Error(),
+			"details": "Invalid username/email or password",
 		})
 	}
 
@@ -59,33 +60,30 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 // @Tags auth
 // @Accept  json
 // @Produce  json
-// @Param register body entities.RegisterRequest true "User data"
-// @Success 200 {object} string "User registered successfully"
+// @Param register body dtos.RegisterRequest true "Register request"
+// @Success 200 {object} dtos.RegisterResponse
 // @Failure 400 {object} string "Failed to register user"
+// @Failure 409 {object} string "Email already exists"
 // @Router /auth/register [post]
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
-	var req entities.RegisterRequest
+	var req dtos.RegisterRequest
 
 	// Parse request body
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "Invalid input",
-			"details": err.Error(),
+			"details": "Failed to parse registration request",
 		})
 	}
 
 	// Register the user and capture the detailed error response
-	errResponse := h.useCase.Register(req.Username, req.Password, req.Email)
+	res, errResponse := h.useCase.Register(req.Username, req.Password, req.Email, req.PhoneNumber)
 	if errResponse != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "Failed to register user",
-			"details": errResponse.Message, // Add the error details
+			"details": errResponse,
 		})
 	}
 
-	// Return success response
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"status":  "success",
-		"message": "User registered successfully",
-	})
+	return c.Status(fiber.StatusOK).JSON(res)
 }

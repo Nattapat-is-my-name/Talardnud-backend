@@ -91,3 +91,42 @@ func (repo *MarketRepository) GetMarketWithProviderByID(marketID string) (*entit
 
 	return &market, nil
 }
+func (repo *MarketRepository) GetMarkets() ([]entities.Market, *entitiesDtos.ErrorResponse) {
+	var markets []entities.Market
+
+	// Add Debug logging to see actual SQL query
+	err := repo.db.Debug().Find(&markets).Error
+	if err != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Database error: " + err.Error(),
+		}
+	}
+
+	// Log the number of markets retrieved for debugging purposes
+	fmt.Printf("Markets found: %d\n", len(markets))
+
+	return markets, nil
+}
+
+// get market by id
+func (repo *MarketRepository) GetMarketByID(marketID string) (*entities.Market, *entitiesDtos.ErrorResponse) {
+	var market entities.Market
+	err := repo.db.Where("id = ?", marketID).First(&market).Error
+
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, &entitiesDtos.ErrorResponse{
+				Code:    404,
+				Message: "Market not found",
+			}
+		}
+
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Database error: " + err.Error(),
+		}
+	}
+
+	return &market, nil
+}

@@ -43,3 +43,22 @@ func (h *SlotHandler) CreateSlot(c *fiber.Ctx) error {
 
 	return c.Status(201).JSON(slot)
 }
+
+// GetSlot godoc
+// @Summary Get all slots
+// @Description Get all slots
+// @Tags slots
+// @Accept json
+// @Produce json
+// @Param id path string true "Market ID"
+// @Success 200 {object} []dtos.SlotResponse
+// @Router /slots/get/{id} [get]
+func (h *SlotHandler) GetSlot(c *fiber.Ctx) error {
+	marketID := c.Params("id")
+	slots, errRes := h.useCase.GetSlots(marketID)
+	if errRes != nil {
+		return c.Status(errRes.Code).JSON(errRes)
+	}
+
+	return c.Status(200).JSON(slots)
+}

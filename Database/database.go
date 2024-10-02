@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"os"
 	entities "tln-backend/Entities"
+	"tln-backend/Entities/dtos"
 )
 
 func NewDB() (*gorm.DB, error) {
@@ -24,9 +25,10 @@ func NewDB() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	if err := db.AutoMigrate(&entities.Vendor{},
+	if err := db.AutoMigrate(
+		&entities.Vendor{},
 		&entities.LoginRequest{},
-		&entities.RegisterRequest{},
+		&dtos.RegisterRequest{},
 		&entities.MarketProvider{},
 		&entities.Booking{},
 		&entities.Market{},

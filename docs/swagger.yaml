@@ -75,19 +75,72 @@ definitions:
     required:
     - booking_id
     type: object
+  dtos.GetListMarketResponse:
+    properties:
+      market:
+        items:
+          $ref: '#/definitions/dtos.MarketResponse'
+        type: array
+    type: object
   dtos.GetUserResponse:
     properties:
       bookings:
         $ref: '#/definitions/dtos.BookingDtos'
-      created_at:
-        type: string
       email:
         type: string
       id:
         type: string
-      updated_at:
-        type: string
       username:
+        type: string
+    type: object
+  dtos.MarketRequest:
+    properties:
+      address:
+        description: Required, address of the market
+        type: string
+      close_time:
+        description: Required, closing time in HH:mm format
+        type: string
+      description:
+        description: Optional, description of the market
+        type: string
+      image:
+        description: Optional, URL or path to the market image
+        type: string
+      latitude:
+        description: Optional, latitude coordinate
+        type: string
+      longitude:
+        description: Optional, longitude coordinate
+        type: string
+      name:
+        description: Required, name of the market
+        type: string
+      open_time:
+        description: Required, opening time in HH:mm format
+        type: string
+      provider_id:
+        description: Required, UUID of the provider
+        type: string
+    required:
+    - address
+    - close_time
+    - name
+    - open_time
+    - provider_id
+    type: object
+  dtos.MarketResponse:
+    properties:
+      data:
+        description: the data to be returned
+        items:
+          $ref: '#/definitions/entities.Market'
+        type: array
+      message:
+        description: message to accompany the response
+        type: string
+      status:
+        description: success or error
         type: string
     type: object
   dtos.PromptPayResponse:
@@ -106,6 +159,42 @@ definitions:
           description:
             type: string
         type: object
+    type: object
+  dtos.RegisterRequest:
+    properties:
+      email:
+        description: Required, must be a valid email format
+        type: string
+      password:
+        description: Required, min 8 characters for password
+        minLength: 8
+        type: string
+      phone_number:
+        description: Required, adjust based on the expected format=
+        maxLength: 15
+        minLength: 10
+        type: string
+      username:
+        description: Required, min 3, max 50 characters
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - phone_number
+    - username
+    type: object
+  dtos.RegisterResponse:
+    properties:
+      email:
+        type: string
+      id:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
     type: object
   dtos.SlotRequest:
     properties:
@@ -182,6 +271,35 @@ definitions:
       transactionId:
         type: string
     type: object
+  entities.Booking:
+    properties:
+      booking_date:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      end_date:
+        type: string
+      id:
+        type: string
+      payment:
+        $ref: '#/definitions/entities.Payment'
+      slot:
+        $ref: '#/definitions/entities.Slot'
+      slot_id:
+        type: string
+      start_date:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      vendor:
+        $ref: '#/definitions/entities.Vendor'
+      vendor_id:
+        type: string
+    type: object
   entities.LoginRequest:
     properties:
       password:
@@ -202,24 +320,187 @@ definitions:
       vendor_id:
         type: string
     type: object
-  entities.RegisterRequest:
+  entities.Market:
     properties:
-      email:
-        description: Required, must be a valid email format
+      address:
         type: string
-      password:
-        description: Required, min 8 characters for password
-        minLength: 8
+      close_time:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      description:
+        type: string
+      details:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      latitude:
+        type: string
+      longitude:
+        type: string
+      name:
+        type: string
+      open_time:
+        type: string
+      phone:
+        type: string
+      provider_id:
+        type: string
+      slots:
+        items:
+          $ref: '#/definitions/entities.Slot'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  entities.Payment:
+    properties:
+      amount:
+        type: number
+      booking:
+        $ref: '#/definitions/entities.Booking'
+      booking_id:
+        type: string
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      payment_date:
+        type: string
+      status:
+        type: string
+      transactions:
+        items:
+          $ref: '#/definitions/entities.Transaction'
+        type: array
+      updated_at:
+        type: string
+    type: object
+  entities.Slot:
+    properties:
+      bookings:
+        items:
+          $ref: '#/definitions/entities.Booking'
+        type: array
+      column:
+        type: integer
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      market:
+        $ref: '#/definitions/entities.Market'
+      market_id:
+        type: string
+      name:
+        type: string
+      price:
+        type: number
+      row:
+        type: integer
+      size:
+        type: string
+      slot_type:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entities.Stall:
+    properties:
+      created_at:
+        type: string
+      description:
+        description: Description of the stall
+        type: string
+      id:
+        type: string
+      image:
+        description: Image of the stall
+        type: string
+      name:
+        description: Name of the stall/store
+        type: string
+      type:
+        description: Type of the stall (food, clothing, etc.)
+        type: string
+      updated_at:
+        type: string
+      vendor_id:
+        type: string
+    type: object
+  entities.Transaction:
+    properties:
+      amount:
+        type: number
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: string
+      method:
+        type: string
+      payment:
+        $ref: '#/definitions/entities.Payment'
+      payment_id:
+        type: string
+      ref1:
+        type: string
+      ref2:
+        type: string
+      ref3:
+        type: string
+      status:
+        type: string
+      transaction_date:
+        type: string
+      transaction_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  entities.Vendor:
+    properties:
+      bookings:
+        items:
+          $ref: '#/definitions/entities.Booking'
+        type: array
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      last_name:
+        type: string
+      phone:
+        type: string
+      stalls:
+        items:
+          $ref: '#/definitions/entities.Stall'
+        type: array
+      updated_at:
         type: string
       username:
-        description: Required, min 3, max 50 characters
-        maxLength: 50
-        minLength: 3
         type: string
-    required:
-    - email
-    - password
-    - username
     type: object
 host: localhost:3000
 info:
@@ -270,21 +551,25 @@ paths:
       - application/json
       description: Register a new user with the provided data
       parameters:
-      - description: User data
+      - description: Register request
         in: body
         name: register
         required: true
         schema:
-          $ref: '#/definitions/entities.RegisterRequest'
+          $ref: '#/definitions/dtos.RegisterRequest'
       produces:
       - application/json
       responses:
         "200":
-          description: User registered successfully
+          description: OK
           schema:
-            type: string
+            $ref: '#/definitions/dtos.RegisterResponse'
         "400":
           description: Failed to register user
+          schema:
+            type: string
+        "409":
+          description: Email already exists
           schema:
             type: string
       summary: Register
@@ -358,6 +643,63 @@ paths:
       summary: Create a booking
       tags:
       - bookings
+  /markets/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new market
+      parameters:
+      - description: Market object that needs to be created
+        in: body
+        name: market
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.MarketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dtos.MarketResponse'
+      summary: Create a new market
+      tags:
+      - Market
+  /markets/get:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.GetListMarketResponse'
+      summary: Get all markets
+      tags:
+      - Market
+  /markets/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a market by ID
+      parameters:
+      - description: Market ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.MarketResponse'
+      summary: Get a market by ID
+      tags:
+      - Market
   /slots/create:
     post:
       consumes:
@@ -392,40 +734,29 @@ paths:
       summary: Create a slot
       tags:
       - slots
-  /users:
-    post:
+  /slots/get/{id}:
+    get:
       consumes:
       - application/json
-      description: Create a new user with the provided data
+      description: Get all slots
       parameters:
-      - description: User data
-        in: body
-        name: user
+      - description: Market ID
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/entities.RegisterRequest'
+        type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/entities.RegisterRequest'
-        "400":
-          description: Invalid input
-          schema:
-            type: string
-        "409":
-          description: Username already exists
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      summary: Create a user
+            items:
+              $ref: '#/definitions/dtos.SlotResponse'
+            type: array
+      summary: Get all slots
       tags:
-      - users
+      - slots
   /users/{id}:
     delete:
       consumes:

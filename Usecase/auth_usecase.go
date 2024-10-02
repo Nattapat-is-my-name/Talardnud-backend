@@ -3,7 +3,7 @@ package Usecase
 import (
 	"github.com/google/uuid"
 	entities "tln-backend/Entities"
-	entitiesDtos "tln-backend/Entities/dtos"
+	"tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
 )
 
@@ -26,14 +26,14 @@ func (uc *AuthUseCase) Login(usernameOrEmail, password string) (entities.LoginRe
 }
 
 // Register handles user registration by hashing the password and saving the user data
-func (uc *AuthUseCase) Register(username, password, email string) *entitiesDtos.ErrorResponse {
-	// Check if the username already exists
+func (uc *AuthUseCase) Register(username, password, email, phone string) (dtos.RegisterResponse, *dtos.ErrorResponse) {
+	// Check if the username and email already exist
 	exists, errResponse := uc.repo.IsUsernameAndEmailExists(username, email)
 	if errResponse != nil {
-		return errResponse
+		return dtos.RegisterResponse{}, errResponse
 	}
 	if exists {
-		return &entitiesDtos.ErrorResponse{
+		return dtos.RegisterResponse{}, &dtos.ErrorResponse{
 			Code:    409,
 			Message: "Username or email already exists",
 		}
@@ -42,7 +42,7 @@ func (uc *AuthUseCase) Register(username, password, email string) *entitiesDtos.
 	// Hash the password
 	hashedPassword, err := uc.auth.HashPassword(password)
 	if err != nil {
-		return &entitiesDtos.ErrorResponse{
+		return dtos.RegisterResponse{}, &dtos.ErrorResponse{
 			Code:    500,
 			Message: "Error hashing password: " + err.Error(),
 		}
@@ -54,15 +54,24 @@ func (uc *AuthUseCase) Register(username, password, email string) *entitiesDtos.
 		Username: username,
 		Email:    email,
 		Password: hashedPassword,
+		Phone:    phone,
 	}
 
 	// Register the new vendor
 	if err := uc.repo.Register(&newVendor); err != nil {
-		return &entitiesDtos.ErrorResponse{
+		return dtos.RegisterResponse{}, &dtos.ErrorResponse{
 			Code:    500,
-			Message: "Error registering user: " + err.Error(),
+			Message: "Failed to register user: " + err.Error(),
 		}
 	}
 
-	return nil
+	// Convert to RegisterResponse
+	response := dtos.RegisterResponse{
+		ID:       newVendor.ID,
+		Username: newVendor.Username,
+		Email:    newVendor.Email,
+		Phone:    newVendor.Phone,
+	}
+
+	return response, nil
 }

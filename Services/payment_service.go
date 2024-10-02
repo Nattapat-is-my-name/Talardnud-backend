@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	"io/ioutil"
+	"log"
 	"math/rand"
 	"net/http"
 	"os"
@@ -77,6 +78,8 @@ func (uc *PaymentService) GetOAuthToken() (*entities.OAuthResponse, error) {
 		return nil, fmt.Errorf("failed to unmarshal OAuth response body: %w", err)
 	}
 
+	log.Print("oauthResp", oauthResp)
+
 	oauthResp.Data.UUID = requestID.String()
 
 	// Return the OAuth token response
@@ -112,6 +115,8 @@ func (uc *PaymentService) CreateQRCode(accessToken string, uuid string, amount f
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
+	log.Print("resp", resp)
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to make request: %v", err)
 	}

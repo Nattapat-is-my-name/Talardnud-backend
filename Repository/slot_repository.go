@@ -43,3 +43,14 @@ func (repo *SlotRepository) GetSlotWithMarketAndProviderByID(slotID string) (*en
 
 	return &slot, nil
 }
+
+func (repo *SlotRepository) GetSlots(marketID string) ([]*entities.Slot, error) {
+	var slots []*entities.Slot
+
+	err := repo.db.Where("market_id = ?", marketID).Find(&slots).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return slots, nil
+}

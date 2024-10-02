@@ -87,6 +87,101 @@ func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string
 	}, nil
 }
 
+//func (uc *PaymentUseCase) PaymentConfirmation(request *entities2.ConfirmPayment) (*entities2.PaymentConfirmation, *entitiesDtos.ErrorResponse) {
+//	// Get the OAuth token
+//	oauthResp, err := uc.paymentService.GetOAuthToken()
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to get OAuth token: %v", err),
+//		}
+//	}
+//
+//	// Construct the URL with transaction reference and sending bank
+//	transRef := request.TransRef
+//	sendingBank := "014" // You might want to pass this as part of the request
+//	url := fmt.Sprintf("https://api-sandbox.partners.scb/partners/sandbox/v1/payment/billpayment/transactions/%s?sendingBank=%s", transRef, sendingBank)
+//
+//	// Create and send the HTTP request
+//	req, err := http.NewRequest("GET", url, nil)
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to create request: %v", err),
+//		}
+//	}
+//
+//	req.Header.Set("Content-Type", "application/json")
+//	req.Header.Set("authorization", fmt.Sprintf("Bearer %s", oauthResp.Data.AccessToken))
+//	req.Header.Set("requestUId", uuid.New().String())
+//	req.Header.Set("resourceOwnerId", os.Getenv("API_KEY"))
+//
+//	resp, err := http.DefaultClient.Do(req)
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to complete payment confirmation: %v", err),
+//		}
+//	}
+//
+//	defer resp.Body.Close()
+//
+//	// Check for non-OK response status
+//	if resp.StatusCode != http.StatusOK {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    resp.StatusCode,
+//			Message: fmt.Sprintf("Failed to complete payment confirmation. Status: %d", resp.StatusCode),
+//		}
+//	}
+//
+//	// Decode the response body into the response struct
+//	var confirmationResp entities2.PaymentConfirmation
+//	if err := json.NewDecoder(resp.Body).Decode(&confirmationResp); err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to parse response: %v", err),
+//		}
+//	}
+//
+//	// Verify ref1, ref2, ref3 match records in the database
+//	transaction, err := uc.verifyRefs(confirmationResp.Data.Ref1, confirmationResp.Data.Ref2, confirmationResp.Data.Ref3)
+//	if err != nil {
+//		return nil, err.(*entitiesDtos.ErrorResponse)
+//	}
+//
+//	// Update the payment status to CONFIRMED
+//	if _, err := uc.repo.UpdatePayment(transaction.PaymentID, "CONFIRMED"); err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to update payment: %v", err),
+//		}
+//	}
+//
+//	return &confirmationResp, nil
+//}
+//
+//func (uc *PaymentUseCase) verifyRefs(ref1, ref2, ref3 string) (*entities2.Transaction, error) {
+//	// Get the transaction from the database
+//	transaction, err := uc.repo.GetTransaction(ref1, ref2, ref3)
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to get transaction: %v", err),
+//		}
+//	}
+//
+//	// Update the transaction status to CONFIRMED
+//	update, err := uc.repo.UpdateTransaction(transaction.ID, "CONFIRMED")
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to update transaction: %v", err),
+//		}
+//	}
+//
+//	return update, nil
+//}
+
 func (uc *PaymentUseCase) PaymentConfirmation(request *entities2.PaymentConfirmation) (*entities2.Transaction, *entitiesDtos.ErrorResponse) {
 	// Get the OAuth token
 	oauthResp, err := uc.paymentService.GetOAuthToken()

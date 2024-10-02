@@ -79,3 +79,29 @@ func (uc *MarketUseCase) CreateMarket(marketReq *entitiesDtos.MarketRequest) (*e
 	// Return the created market with provider details
 	return createdMarket, nil
 }
+
+func (uc *MarketUseCase) GetMarket() ([]entities.Market, *entitiesDtos.ErrorResponse) {
+	markets, err := uc.repo.GetMarkets()
+	if err != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to retrieve markets: " + err.Error(),
+		}
+
+	}
+
+	return markets, nil
+
+}
+
+func (uc *MarketUseCase) GetMarketByID(marketID string) (*entities.Market, *entitiesDtos.ErrorResponse) {
+	market, errRes := uc.repo.GetMarketByID(marketID)
+	if errRes != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to retrieve market: " + errRes.Message,
+		}
+	}
+
+	return market, nil
+}
