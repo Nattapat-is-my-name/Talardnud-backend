@@ -6,8 +6,8 @@ import (
 
 type Booking struct {
 	ID          string     `gorm:"primaryKey;column:id" json:"id"`
-	SlotID      string     `gorm:"type:varchar(36);not null;index" json:"slot_id"`
-	Slot        *Slot      `gorm:"foreignKey:SlotID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"slot"`
+	SlotID      string     `gorm:"type:varchar(36);not null" json:"slot_id"`
+	Slot        *Slot      `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"slot"`
 	VendorID    string     `gorm:"type:varchar(36);not null;index" json:"vendor_id"`
 	Vendor      *Vendor    `gorm:"foreignKey:VendorID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"vendor"`
 	BookingDate time.Time  `gorm:"type:timestamptz;not null" json:"booking_date"`

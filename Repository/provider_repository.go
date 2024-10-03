@@ -65,3 +65,18 @@ func (pr *ProviderRepository) GetAllProviders() ([]*entities.MarketProvider, err
 	}
 	return providers, nil
 }
+
+// CheckProviderByEmail checks if a provider exists by its email.
+func (pr *ProviderRepository) CheckProviderByEmail(email string) (*entities.MarketProvider, error) {
+	var provider entities.MarketProvider
+	if err := pr.db.First(&provider, "email = ?", email).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Printf("Provider not found with email: %s", email)
+			return nil, nil
+		}
+		log.Printf("Error retrieving provider by email: %v", err)
+		return nil, err
+	}
+	return &provider, nil
+
+}

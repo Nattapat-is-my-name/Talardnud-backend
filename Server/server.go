@@ -55,6 +55,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	slotGroup := v1.Group("/Slots")
 	slotGroup.Post("/create", allHandlers.SlotHandler.CreateSlot)
 	slotGroup.Get("/get/:id", allHandlers.SlotHandler.GetSlot)
+	slotGroup.Get("/markets/:marketID/dates/:date", allHandlers.SlotHandler.GetSlotByDate)
 
 	//paymentGroup := v1.Group("/Payments", authMiddleware)
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)

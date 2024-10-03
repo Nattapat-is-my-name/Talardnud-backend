@@ -20,14 +20,14 @@ func NewSlotHandler(useCase *Usecase.SlotUseCase) *SlotHandler {
 // @Tags slots
 // @Accept  json
 // @Produce  json
-// @Param slot body entitiesDtos.SlotRequest true "Slot data"
-// @Success 201 {object} entitiesDtos.SlotResponse
+// @Param slot body dtos.SlotGenerationRequest true "Slot data"
+// @Success 201 {object} []entities.Slot
 // @Failure 400 {object} string "Invalid input"
 // @Failure 409 {object} string "Slot already exists"
 // @Failure 500 {object} string "Internal server error"
 // @Router /slots/create [post]
 func (h *SlotHandler) CreateSlot(c *fiber.Ctx) error {
-	var slotReq entitiesDtos.SlotRequest
+	var slotReq entitiesDtos.SlotGenerationRequest
 
 	if err := c.BodyParser(&slotReq); err != nil {
 		return c.Status(400).JSON(&entitiesDtos.ErrorResponse{
@@ -36,7 +36,7 @@ func (h *SlotHandler) CreateSlot(c *fiber.Ctx) error {
 		})
 	}
 
-	slot, errRes := h.useCase.CreateSlot(&slotReq)
+	slot, errRes := h.useCase.CreateSlots(&slotReq)
 	if errRes != nil {
 		return c.Status(errRes.Code).JSON(errRes)
 	}
@@ -51,13 +51,34 @@ func (h *SlotHandler) CreateSlot(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Market ID"
-// @Success 200 {object} []dtos.SlotResponse
+// @Success 200 {object} entities.Slot
 // @Router /slots/get/{id} [get]
 func (h *SlotHandler) GetSlot(c *fiber.Ctx) error {
 	marketID := c.Params("id")
 	slots, errRes := h.useCase.GetSlots(marketID)
 	if errRes != nil {
 		return c.Status(errRes.Code).JSON(errRes)
+	}
+
+	return c.Status(200).JSON(slots)
+}
+
+// GetSlotByDate godoc
+// @Summary Get slots by date
+// @Description Get slots by date
+// @Tags slots
+// @Accept json
+// @Produce json
+// @Param marketID path string true "Market ID"
+// @Param date path string true "Date"
+// @Success 200 {object} []entities.Slot
+// @Router /slots/markets/{marketID}/dates/{date} [get]
+func (h *SlotHandler) GetSlotByDate(c *fiber.Ctx) error {
+	marketID := c.Params("marketID")
+	selectDate := c.Params("date")
+	slots, errRes := h.useCase.GetSlotsByDate(marketID, selectDate)
+	if errRes != nil {
+		return c.Status(errRes.Code).JSON(slots)
 	}
 
 	return c.Status(200).JSON(slots)

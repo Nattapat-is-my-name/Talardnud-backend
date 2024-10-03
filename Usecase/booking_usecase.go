@@ -34,6 +34,8 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 		}
 	}
 
+	//Check slot available or not
+
 	// Check if a conflicting booking exists with 'pending' status
 	exists, err := uc.repo.IsBookingExists(bookingReq)
 	if err != nil {
@@ -53,8 +55,8 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 
 	// Create the booking entity
 	bookingEntity := entities.Booking{
-		ID:          uuid.New().String(),
-		SlotID:      bookingReq.SlotID,
+		ID: uuid.New().String(),
+
 		VendorID:    bookingReq.VendorID,
 		StartDate:   bookingReq.StartDate,
 		EndDate:     bookingReq.EndDate,
@@ -101,8 +103,8 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 	}
 
 	bookingResponse := &entitiesDtos.BookingResponse{
-		ID:          bookingEntity.ID,
-		SlotID:      bookingEntity.SlotID,
+		ID: bookingEntity.ID,
+
 		VendorID:    bookingEntity.VendorID,
 		BookingDate: bookingEntity.BookingDate,
 		StartDate:   bookingEntity.StartDate,

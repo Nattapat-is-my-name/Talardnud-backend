@@ -8,4 +8,5 @@ type IProvider interface {
 	GetProviderByID(id string) (*entities.MarketProvider, error)
 	DeleteProvider(id string) error
 	GetAllProviders() ([]*entities.MarketProvider, error)
+	CheckProviderByEmail(email string) (*entities.MarketProvider, error)
 }
