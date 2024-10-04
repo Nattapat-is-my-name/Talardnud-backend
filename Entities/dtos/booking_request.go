@@ -1,15 +1,14 @@
 package dtos
 
-import "time"
+import entities "tln-backend/Entities"
 
 type BookingRequest struct {
-	SlotID    string    `json:"slot_id" validate:"required,uuid"`               // Required, selected by the user
-	VendorID  string    `json:"vendor_id" validate:"required,uuid"`             // Required, selected by the user
-	StartDate time.Time `json:"start_date" validate:"required"`                 // Required, start of booking
-	EndDate   time.Time `json:"end_date" validate:"required,gtfield=StartDate"` // Required, end of booking
-	Amount    float64   `json:"amount" validate:"required,gt=0"`                // Required, amount to be paid
-	Method    string    `json:"method" validate:"required"`                     // Required, payment method
-	MarketID  string    `json:"market_id" validate:"required,uuid"`             // Required, selected by the user
+	SlotID      string          `gorm:"uniqueIndex;not null" json:"slot_id"`
+	VendorID    string          `json:"vendor_id" validate:"required,uuid"` // Required, selected by the user
+	BookingDate string          `json:"booking_date" validate:"required,datetime=2006-01-02"`
+	Price       float64         `json:"price" validate:"required,gt=0"`
+	Method      entities.Method `json:"method" validate:"required,oneof=PromptPay"`
+	MarketID    string          `json:"market_id" validate:"required,uuid"` // Required, selected by the user
 
 }
 

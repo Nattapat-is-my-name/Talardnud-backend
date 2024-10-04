@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 	entities2 "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
@@ -27,7 +26,7 @@ func NewPaymentUseCase(repo Interfaces.IPayment, paymentService *Services.Paymen
 	}
 }
 
-func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string) (*entitiesDtos.PromptPayResult, *entitiesDtos.ErrorResponse) {
+func (uc *PaymentUseCase) PromptPay(request entities2.Payment, paymentID string) (*entitiesDtos.PromptPayResult, *entitiesDtos.ErrorResponse) {
 	// Get the OAuth token
 	oauthResp, err := uc.paymentService.GetOAuthToken()
 	if err != nil {
@@ -41,7 +40,7 @@ func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string
 	token := oauthResp.Data.AccessToken
 	UUID := oauthResp.Data.UUID
 
-	qrResp, promptPay, err := uc.paymentService.CreateQRCode(token, UUID, request.Amount)
+	qrResp, promptPay, err := uc.paymentService.CreateQRCode(token, UUID, request.Price)
 	if err != nil {
 		log.Printf("Failed to create QR code: %v", err)
 		return nil, &entitiesDtos.ErrorResponse{
@@ -49,44 +48,13 @@ func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string
 			Message: fmt.Sprintf("Failed to create QR code: %v", err),
 		}
 	}
-
-	amount, err := strconv.ParseFloat(promptPay.Amount, 64)
-	if err != nil {
-		log.Printf("Failed to parse amount: %v", err)
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    400,
-			Message: fmt.Sprintf("Failed to parse amount: %v", err),
-		}
-	}
-
-	transaction := &entities2.Transaction{
-		ID: uuid.New().String(),
-
-		PaymentID:     paymentID,
-		Method:        "Promptpay",
-		TransactionID: promptPay.TransactionID,
-		Ref1:          promptPay.Ref1,
-		Ref2:          promptPay.Ref2,
-		Ref3:          promptPay.Ref3,
-		Amount:        amount,
-		Status:        "PENDING",
-	}
-	err = uc.repo.CreateTransaction(transaction)
-	if err != nil {
-		log.Printf("Failed to create transaction: %v", err)
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("Failed to create transaction: %v", err),
-		}
-	}
-
-	log.Printf("PromptPay request processed successfully")
 	return &entitiesDtos.PromptPayResult{
-		QRResponse:  qrResp,
-		Transaction: transaction,
+		QRResponse:      qrResp,
+		PromptPayDetail: promptPay,
 	}, nil
 }
 
+//
 //func (uc *PaymentUseCase) PaymentConfirmation(request *entities2.ConfirmPayment) (*entities2.PaymentConfirmation, *entitiesDtos.ErrorResponse) {
 //	// Get the OAuth token
 //	oauthResp, err := uc.paymentService.GetOAuthToken()
@@ -99,7 +67,7 @@ func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string
 //
 //	// Construct the URL with transaction reference and sending bank
 //	transRef := request.TransRef
-//	sendingBank := "014" // You might want to pass this as part of the request
+//	sendingBank := request.SendingBank
 //	url := fmt.Sprintf("https://api-sandbox.partners.scb/partners/sandbox/v1/payment/billpayment/transactions/%s?sendingBank=%s", transRef, sendingBank)
 //
 //	// Create and send the HTTP request
@@ -150,7 +118,7 @@ func (uc *PaymentUseCase) PromptPay(request *entities2.Payment, paymentID string
 //	}
 //
 //	// Update the payment status to CONFIRMED
-//	if _, err := uc.repo.UpdatePayment(transaction.PaymentID, "CONFIRMED"); err != nil {
+//	if _, err := uc.repo.UpdateTransaction(transaction.PaymentID, entities2.TransactionCompleted); err != nil {
 //		return nil, &entitiesDtos.ErrorResponse{
 //			Code:    500,
 //			Message: fmt.Sprintf("Failed to update payment: %v", err),

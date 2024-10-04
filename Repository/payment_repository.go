@@ -34,10 +34,23 @@ func (r *PaymentRepository) GetTransaction(ref1, ref2, ref3 string) (*entities.T
 	return &transaction, nil
 }
 
-func (r *PaymentRepository) UpdatePayment(BookingID string, Status string) (*entities.Payment, error) {
+func (r *PaymentRepository) GetTransactionByID(transactionID string) (*entities.Transaction, error) {
+
+	var transaction entities.Transaction
+	if err := r.db.Where("id = ?", transactionID).First(&transaction).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("transaction not found")
+		}
+		return nil, err
+
+	}
+	return &transaction, nil
+}
+
+func (r *PaymentRepository) UpdatePayment(paymentID string, Status entities.PaymentStatus) (*entities.Payment, error) {
 
 	var payment entities.Payment
-	result := r.db.Model(&payment).Where("booking_id = ?", BookingID).Update("status", Status)
+	result := r.db.Model(&payment).Where("ID = ?", paymentID).Update("status", Status)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -54,7 +67,7 @@ func (r *PaymentRepository) CreatePayment(payment *entities.Payment) error {
 	return nil
 }
 
-func (r *PaymentRepository) UpdateTransaction(TransactionID string, Status string) (*entities.Transaction, error) {
+func (r *PaymentRepository) UpdateTransaction(TransactionID string, Status entities.TransactionStatus) (*entities.Transaction, error) {
 
 	var transaction entities.Transaction
 	result := r.db.Model(&transaction).Where("id = ?", TransactionID).Update("status", Status)

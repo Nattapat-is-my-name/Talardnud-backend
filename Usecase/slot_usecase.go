@@ -2,7 +2,6 @@ package Usecase
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"time"
 	entities "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
@@ -66,10 +65,8 @@ func (su *SlotUseCase) CreateSlots(slotReq *entitiesDtos.SlotGenerationRequest) 
 		for _, slotData := range slotReq.Slots {
 			uniqueSlotID := fmt.Sprintf("%s-%s-%s", slotReq.MarketID, slotData.SlotID, date.Format("2006-01-02"))
 			slotEntity := &entities.Slot{
-				ID:       uuid.New().String(),
-				SlotID:   uniqueSlotID,
-				MarketID: slotReq.MarketID,
-
+				ID:        uniqueSlotID,
+				MarketID:  slotReq.MarketID,
 				Price:     slotData.Price,
 				Status:    slotData.Status,
 				Category:  slotData.Category,

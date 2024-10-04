@@ -1,9 +1,9 @@
 package Repository
 
 import (
+	"errors"
 	"fmt"
 	"gorm.io/gorm"
-	"log"
 	entities "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
 )
@@ -20,24 +20,6 @@ func (repo *BookingRepository) CreateBooking(booking *entities.Booking) error {
 	return repo.db.Create(booking).Error
 }
 
-func (repo *BookingRepository) IsBookingExists(bookingReq *entitiesDtos.BookingRequest) (bool, error) {
-	var count int64
-
-	// Check for overlapping bookings with "pending" status
-	err := repo.db.Model(&entities.Booking{}).
-		Where("slot_id = ? AND status = ? AND ((start_date < ? AND end_date > ?) OR (start_date < ? AND end_date > ?))",
-			bookingReq.SlotID, "pending", bookingReq.EndDate, bookingReq.StartDate, bookingReq.StartDate, bookingReq.EndDate).
-		Count(&count).Error
-
-	if err != nil {
-		// Log and return error for debugging
-		log.Printf("Failed to check booking existence: %v", err)
-		return false, fmt.Errorf("failed to check booking existence: %w", err)
-	}
-
-	return count > 0, nil
-}
-
 func (repo *BookingRepository) GetBooking(bookingID string) (*entities.Booking, error) {
 	var booking entities.Booking
 
@@ -50,6 +32,46 @@ func (repo *BookingRepository) GetBooking(bookingID string) (*entities.Booking, 
 	return &booking, nil
 }
 
-func (repo *BookingRepository) UpdateBookingStatus(bookingID string, status string) error {
-	return repo.db.Model(&entities.Booking{}).Where("id = ?", bookingID).Update("status", status).Error
+func (repo *BookingRepository) UpdateBookingStatus(bookingID string, status entities.BookingStatus) (*entities.Booking, error) {
+	var booking entities.Booking
+	result := repo.db.Model(&booking).Where("ID = ?", bookingID).Update("status", status)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &booking, nil
+}
+
+func (repo *BookingRepository) IsSlotAvailable(bookingReq *entitiesDtos.BookingRequest) error {
+	// First, check if the slot exists
+	var slot entities.Slot
+	if err := repo.db.Where("ID = ? AND market_id = ?", bookingReq.SlotID, bookingReq.MarketID).First(&slot).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return fmt.Errorf("slot not found")
+		}
+		return fmt.Errorf("error checking slot existence: %w", err)
+	}
+
+	// Check if the slot is available (not in maintenance or other unavailable status)
+	if slot.Status != "available" {
+		return fmt.Errorf("slot is not available for booking")
+	}
+
+	// Check for existing bookings on the requested date
+	var count int64
+	err := repo.db.Model(&entities.Booking{}).
+		Where("vendor_id = ? AND slot_id = ? AND DATE(booking_date) = ? AND status IN ('pending', 'confirmed')",
+			bookingReq.VendorID, bookingReq.SlotID, bookingReq.BookingDate).
+		Count(&count).Error
+
+	if err != nil {
+		return fmt.Errorf("error checking existing bookings: %w", err)
+	}
+
+	if count > 0 {
+		return fmt.Errorf("you already have a pending or confirmed booking for this slot")
+	}
+
+	return nil
 }

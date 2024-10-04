@@ -17,5 +17,4 @@ type Vendor struct {
 	UpdatedAt time.Time  `gorm:"autoUpdateTime" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"index" json:"deleted_at,omitempty"`
 	Bookings  []Booking  `gorm:"foreignKey:VendorID" json:"bookings"`
-	Stalls    []Stall    `gorm:"foreignKey:VendorID" json:"stalls"`
 }
