@@ -54,14 +54,14 @@ func (repo *BookingRepository) IsSlotAvailable(bookingReq *entitiesDtos.BookingR
 	}
 
 	// Check if the slot is available (not in maintenance or other unavailable status)
-	if slot.Status != "available" {
+	if slot.Status == "completed" {
 		return fmt.Errorf("slot is not available for booking")
 	}
 
 	// Check for existing bookings on the requested date
 	var count int64
 	err := repo.db.Model(&entities.Booking{}).
-		Where("vendor_id = ? AND slot_id = ? AND DATE(booking_date) = ? AND status IN ('pending', 'confirmed')",
+		Where("vendor_id = ? AND slot_id = ? AND DATE(booking_date) = ? AND status IN ('pending', 'completed')",
 			bookingReq.VendorID, bookingReq.SlotID, bookingReq.BookingDate).
 		Count(&count).Error
 

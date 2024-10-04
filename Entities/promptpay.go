@@ -1,7 +1,5 @@
 package entities
 
-import "time"
-
 type PromptPay struct {
 	TransactionID string `json:"transaction_id"` // Unique Transaction ID
 	Amount        string `json:"amount"`         // Amount as string (for precise formatting)
@@ -11,7 +9,6 @@ type PromptPay struct {
 	Status        string `json:"status"`         // Status of the PromptPay transaction (e.g., "Pending", "Success")
 }
 
-// PaymentConfirmation current used
 type PaymentConfirmation struct {
 	Amount                 string `json:"amount"`
 	BillPaymentRef1        string `json:"billPaymentRef1"`
@@ -34,47 +31,46 @@ type PaymentConfirmation struct {
 	TransactionType        string `json:"transactionType"`
 }
 
-//	type ConfirmPayment struct {
-//		TransRef    string `json:"transRef"`
-//		SendingBank string `json:"sendingBank"`
-//	}
-type PaymentConfirmationResponse struct {
-	StatusCode           int       `json:"code"`
-	StatusDescription    string    `json:"description"`
-	TransRef             string    `json:"transRef"`
-	SendingBank          string    `json:"sendingBank"`
-	ReceivingBank        string    `json:"receivingBank"`
-	TransactionDate      string    `json:"transDate"`
-	TransactionTime      string    `json:"transTime"`
-	SenderDisplayName    string    `json:"senderDisplayName"`
-	SenderName           string    `json:"senderName"`
-	SenderProxyType      string    `json:"senderProxyType"`
-	SenderProxyValue     string    `json:"senderProxyValue"`
-	SenderAccountType    string    `json:"senderAccountType"`
-	SenderAccountValue   string    `json:"senderAccountValue"`
-	ReceiverDisplayName  string    `json:"receiverDisplayName"`
-	ReceiverName         string    `json:"receiverName"`
-	ReceiverProxyType    string    `json:"receiverProxyType"`
-	ReceiverProxyValue   string    `json:"receiverProxyValue"`
-	ReceiverAccountType  string    `json:"receiverAccountType"`
-	ReceiverAccountValue string    `json:"receiverAccountValue"`
-	Amount               string    `json:"amount"`
-	PaidLocalAmount      string    `json:"paidLocalAmount"`
-	PaidLocalCurrency    string    `json:"paidLocalCurrency"`
-	CountryCode          string    `json:"countryCode"`
-	Ref1                 string    `json:"ref1"`
-	Ref2                 string    `json:"ref2"`
-	Ref3                 string    `json:"ref3"`
-	CreatedAt            time.Time `json:"createdAt"` // Optional: Add timestamps for tracking
-	UpdatedAt            time.Time `json:"updatedAt"`
+type BillPayment struct {
+	Status Status      `json:"status"`
+	Data   PaymentData `json:"data"`
 }
 
-//type PaymentConfirmation struct {
-//	Status Status      `json:"status"`
-//	Data   PaymentData `json:"data"`
-//}
+type Status struct {
+	Code        int    `json:"code"`
+	Description string `json:"description"`
+}
 
-//type Status struct {
-//	Code        int    `json:"code"`
-//	Description string `json:"description"`
-//}
+type PaymentData struct {
+	TransRef          string `json:"transRef"`
+	SendingBank       string `json:"sendingBank"`
+	ReceivingBank     string `json:"receivingBank"`
+	TransDate         string `json:"transDate"`
+	TransTime         string `json:"transTime"`
+	Sender            User   `json:"sender"`
+	Receiver          User   `json:"receiver"`
+	Amount            string `json:"amount"`
+	PaidLocalAmount   string `json:"paidLocalAmount"`
+	PaidLocalCurrency string `json:"paidLocalCurrency"`
+	CountryCode       string `json:"countryCode"`
+	Ref1              string `json:"ref1"`
+	Ref2              string `json:"ref2"`
+	Ref3              string `json:"ref3"`
+}
+
+type User struct {
+	DisplayName string  `json:"displayName"`
+	Name        string  `json:"name"`
+	Proxy       Proxy   `json:"proxy"`
+	Account     Account `json:"account"`
+}
+
+type Proxy struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}
+
+type Account struct {
+	Type  string `json:"type"`
+	Value string `json:"value"`
+}

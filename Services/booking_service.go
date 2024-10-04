@@ -7,21 +7,24 @@ import (
 	"time"
 	entities "tln-backend/Entities"
 	"tln-backend/Interfaces"
+	"tln-backend/Usecase"
 )
 
 type BookingService struct {
-	scheduler *gocron.Scheduler
-	repo      Interfaces.IBooking
-	payment   Interfaces.IPayment
+	scheduler   *gocron.Scheduler
+	repo        Interfaces.IBooking
+	payment     Interfaces.IPayment
+	SlotUseCase *Usecase.SlotUseCase
 }
 
-func NewBookingService(repo Interfaces.IBooking, payment Interfaces.IPayment) *BookingService {
+func NewBookingService(repo Interfaces.IBooking, payment Interfaces.IPayment, SlotUseCase *Usecase.SlotUseCase) *BookingService {
 	scheduler := gocron.NewScheduler(time.UTC)
 	scheduler.StartAsync()
 	return &BookingService{
-		scheduler: scheduler,
-		repo:      repo,
-		payment:   payment,
+		scheduler:   scheduler,
+		repo:        repo,
+		payment:     payment,
+		SlotUseCase: SlotUseCase,
 	}
 }
 
@@ -39,6 +42,7 @@ func (s *BookingService) RemoveScheduled(bookingID string) {
 	if err != nil {
 		return
 	}
+
 }
 
 func (s *BookingService) checkBookingStatus(transactionID, bookingID string, expiresAt time.Time) {
@@ -105,6 +109,12 @@ func (s *BookingService) completeBooking(transactionID, paymentID, bookingID str
 	}
 
 	if _, err := s.payment.UpdatePayment(paymentID, entities.PaymentCompleted); err != nil {
+		return fmt.Errorf("error updating payment status: %v", err)
+	}
+	if _, err := s.repo.UpdateBookingStatus(bookingID, entities.StatusCompleted); err != nil {
+		return fmt.Errorf("error updating booking status: %v", err)
+	}
+	if _, err := s.SlotUseCase.UpdateSlotStatus(paymentID, entities.StatusBooked); err != nil {
 		return fmt.Errorf("error updating payment status: %v", err)
 	}
 

@@ -69,14 +69,14 @@ func InitializeHandlers(db *gorm.DB) (*Handlers.AllHandlers, *Repository.UserRep
 	marketUseCase := Usecase.NewMarketUseCase(marketRepo)
 	marketHandler := Handlers.NewMarketHandler(marketUseCase)
 
-	bookingRepo := Repository.NewBookingRepository(db)
-	bookingService := Services.NewBookingService(bookingRepo, paymentRepo)
-	bookingUseCase := Usecase.NewBookingUseCase(bookingRepo, paymentRepo, paymentUseCase, bookingService)
-	bookingHandler := Handlers.NewBookingHandler(bookingUseCase)
-
 	slotRepo := Repository.NewSlotRepository(db)
 	slotUseCase := Usecase.NewSlotUseCase(slotRepo)
 	slotHandler := Handlers.NewSlotHandler(slotUseCase)
+
+	bookingRepo := Repository.NewBookingRepository(db)
+	bookingService := Services.NewBookingService(bookingRepo, paymentRepo, slotUseCase)
+	bookingUseCase := Usecase.NewBookingUseCase(bookingRepo, paymentRepo, paymentUseCase, bookingService)
+	bookingHandler := Handlers.NewBookingHandler(bookingUseCase)
 
 	allHandlers := &Handlers.AllHandlers{
 		UserHandler:    userHandler,

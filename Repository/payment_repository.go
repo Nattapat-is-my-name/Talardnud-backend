@@ -29,7 +29,6 @@ func (r *PaymentRepository) GetTransaction(ref1, ref2, ref3 string) (*entities.T
 			return nil, errors.New("transaction not found")
 		}
 		return nil, err
-
 	}
 	return &transaction, nil
 }

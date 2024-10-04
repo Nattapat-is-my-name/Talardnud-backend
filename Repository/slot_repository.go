@@ -80,3 +80,14 @@ func (repo *SlotRepository) GetSlotsByDate(marketID, date string) ([]*entities.S
 
 	return slots, nil
 }
+
+func (repo *SlotRepository) UpdateSlotStatus(slotID string, status entities.SlotStatus) error {
+	var slot entities.Slot
+	result := repo.db.Model(&slot).Where("ID = ?", slotID).Update("status", status)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
+}
