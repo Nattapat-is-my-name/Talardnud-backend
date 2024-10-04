@@ -6,11 +6,14 @@ import (
 	entities "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
+	"tln-backend/contact"
 )
 
 type SlotUseCase struct {
 	repo Interfaces.ISlot
 }
+
+var _ contact.ISlotUseCase = (*SlotUseCase)(nil)
 
 func NewSlotUseCase(repo Interfaces.ISlot) *SlotUseCase {
 	return &SlotUseCase{

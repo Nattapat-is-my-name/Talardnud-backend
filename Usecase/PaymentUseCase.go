@@ -9,16 +9,16 @@ import (
 	"os"
 	entities2 "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
-	"tln-backend/Interfaces"
 	"tln-backend/Services"
+	"tln-backend/contact"
 )
 
 type PaymentUseCase struct {
-	repo           Interfaces.IPayment
+	repo           contact.IPayment
 	paymentService *Services.PaymentService
 }
 
-func NewPaymentUseCase(repo Interfaces.IPayment, paymentService *Services.PaymentService) *PaymentUseCase {
+func NewPaymentUseCase(repo contact.IPayment, paymentService *Services.PaymentService) *PaymentUseCase {
 	return &PaymentUseCase{
 		repo:           repo,
 		paymentService: paymentService,

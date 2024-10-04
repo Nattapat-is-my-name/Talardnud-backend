@@ -6,30 +6,29 @@ import (
 	"log"
 	"time"
 	entities "tln-backend/Entities"
-	"tln-backend/Interfaces"
-	"tln-backend/Usecase"
+	"tln-backend/contact"
 )
 
 type BookingService struct {
 	scheduler   *gocron.Scheduler
-	repo        Interfaces.IBooking
-	payment     Interfaces.IPayment
-	SlotUseCase *Usecase.SlotUseCase
+	repo        contact.IBooking
+	payment     contact.IPayment
+	slotUseCase contact.ISlotUseCase
 }
 
-func NewBookingService(repo Interfaces.IBooking, payment Interfaces.IPayment, SlotUseCase *Usecase.SlotUseCase) *BookingService {
+func NewBookingService(repo contact.IBooking, payment contact.IPayment, slotUseCase contact.ISlotUseCase) *BookingService {
 	scheduler := gocron.NewScheduler(time.UTC)
 	scheduler.StartAsync()
 	return &BookingService{
 		scheduler:   scheduler,
 		repo:        repo,
 		payment:     payment,
-		SlotUseCase: SlotUseCase,
+		slotUseCase: slotUseCase,
 	}
 }
 
-func (s *BookingService) ScheduleBookingCancellation(transactionID, bookingID string, expiresAt time.Time) {
-	job, err := s.scheduler.Every(30).Second().StartAt(time.Now()).Do(s.checkBookingStatus, transactionID, bookingID, expiresAt)
+func (s *BookingService) ScheduleBookingCancellation(transactionID, bookingID, slotID string, expiresAt time.Time) {
+	job, err := s.scheduler.Every(30).Second().StartAt(time.Now()).Do(s.checkBookingStatus, transactionID, bookingID, slotID, expiresAt)
 	if err != nil {
 		log.Printf("Error scheduling booking status check: %v", err)
 		return
@@ -45,7 +44,7 @@ func (s *BookingService) RemoveScheduled(bookingID string) {
 
 }
 
-func (s *BookingService) checkBookingStatus(transactionID, bookingID string, expiresAt time.Time) {
+func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID string, expiresAt time.Time) {
 	transaction, err := s.payment.GetTransactionByID(transactionID)
 	if err != nil {
 		log.Printf("Error fetching transaction for cancellation: %v", err)
@@ -67,7 +66,7 @@ func (s *BookingService) checkBookingStatus(transactionID, bookingID string, exp
 
 	case entities.TransactionCompleted:
 		if time.Now().Before(expiresAt) {
-			err := s.completeBooking(transactionID, transaction.PaymentID, bookingID)
+			err := s.completeBooking(transactionID, transaction.PaymentID, bookingID, slotID)
 			if err != nil {
 				log.Printf("Error completing booking: %v", err)
 				return
@@ -99,7 +98,7 @@ func (s *BookingService) cancelExpiredBooking(transactionID, paymentID, bookingI
 	return nil
 }
 
-func (s *BookingService) completeBooking(transactionID, paymentID, bookingID string) error {
+func (s *BookingService) completeBooking(transactionID, paymentID, bookingID, slotID string) error {
 	if _, err := s.payment.UpdateTransaction(transactionID, entities.TransactionCompleted); err != nil {
 		return fmt.Errorf("error updating transaction status: %v", err)
 	}
@@ -114,8 +113,8 @@ func (s *BookingService) completeBooking(transactionID, paymentID, bookingID str
 	if _, err := s.repo.UpdateBookingStatus(bookingID, entities.StatusCompleted); err != nil {
 		return fmt.Errorf("error updating booking status: %v", err)
 	}
-	if _, err := s.SlotUseCase.UpdateSlotStatus(paymentID, entities.StatusBooked); err != nil {
-		return fmt.Errorf("error updating payment status: %v", err)
+	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, entities.StatusBooked); err != nil {
+		return fmt.Errorf("error updating slot status: %v", err)
 	}
 
 	return nil

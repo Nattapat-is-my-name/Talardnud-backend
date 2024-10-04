@@ -8,18 +8,18 @@ import (
 	"time"
 	entities "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
-	"tln-backend/Interfaces"
 	"tln-backend/Services"
+	"tln-backend/contact"
 )
 
 type BookingUseCase struct {
-	repo           Interfaces.IBooking
-	payment        Interfaces.IPayment
+	repo           contact.IBooking
+	payment        contact.IPayment
 	PaymentUseCase *PaymentUseCase
 	bookingService *Services.BookingService
 }
 
-func NewBookingUseCase(repo Interfaces.IBooking, payment Interfaces.IPayment, paymentUseCase *PaymentUseCase, bookingService *Services.BookingService) *BookingUseCase {
+func NewBookingUseCase(repo contact.IBooking, payment contact.IPayment, paymentUseCase *PaymentUseCase, bookingService *Services.BookingService) *BookingUseCase {
 	return &BookingUseCase{
 		repo:           repo,
 		payment:        payment,
@@ -136,7 +136,7 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 	}
 
 	// Schedule booking cancellation using BookingService
-	uc.bookingService.ScheduleBookingCancellation(transaction.ID, bookingEntity.ID, expirationTime)
+	uc.bookingService.ScheduleBookingCancellation(transaction.ID, bookingEntity.ID, bookingEntity.SlotID, expirationTime)
 
 	return bookingEntity, nil
 }

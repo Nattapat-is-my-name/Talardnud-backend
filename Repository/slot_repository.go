@@ -49,7 +49,7 @@ func (repo *SlotRepository) CheckSlotName(name string) bool {
 func (repo *SlotRepository) GetSlots(slotID string) (*entities.Slot, error) {
 	var slot entities.Slot
 
-	result := repo.db.Where("slot_id = ?", slotID).First(&slot)
+	result := repo.db.Where("ID = ?", slotID).First(&slot)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, fmt.Errorf("slot not found")
