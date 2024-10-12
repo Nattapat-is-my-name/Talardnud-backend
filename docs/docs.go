@@ -115,58 +115,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/bookings/cancel": {
-            "post": {
-                "description": "Cancel a booking with the provided data",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "bookings"
-                ],
-                "summary": "Cancel a booking",
-                "parameters": [
-                    {
-                        "description": "Booking data",
-                        "name": "booking",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dtos.CancelBookingRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/dtos.BookingResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "409": {
-                        "description": "Booking already exists",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/bookings/create": {
             "post": {
                 "description": "Create a new booking with the provided data",
@@ -206,6 +154,50 @@ const docTemplate = `{
                     },
                     "409": {
                         "description": "Booking already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/get/{id}": {
+            "get": {
+                "description": "Get a booking with the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Get a booking",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Booking ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Booking not found",
                         "schema": {
                             "type": "string"
                         }
@@ -327,7 +319,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.SlotRequest"
+                            "$ref": "#/definitions/dtos.SlotGenerationRequest"
                         }
                     }
                 ],
@@ -335,7 +327,10 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/dtos.SlotResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Slot"
+                            }
                         }
                     },
                     "400": {
@@ -385,9 +380,48 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
+                            "$ref": "#/definitions/entities.Slot"
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/markets/{marketID}/date/{date}": {
+            "get": {
+                "description": "Get slots by date",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Get slots by date",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "MarketID",
+                        "name": "marketID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/dtos.SlotResponse"
+                                "$ref": "#/definitions/entities.Slot"
                             }
                         }
                     }
@@ -501,21 +535,14 @@ const docTemplate = `{
         "dtos.BookingRequest": {
             "type": "object",
             "required": [
-                "amount",
-                "end_date",
+                "booking_date",
                 "market_id",
                 "method",
-                "slot_id",
-                "start_date",
+                "price",
                 "vendor_id"
             ],
             "properties": {
-                "amount": {
-                    "description": "Required, amount to be paid",
-                    "type": "number"
-                },
-                "end_date": {
-                    "description": "Required, end of booking",
+                "booking_date": {
                     "type": "string"
                 },
                 "market_id": {
@@ -523,15 +550,19 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "method": {
-                    "description": "Required, payment method",
-                    "type": "string"
+                    "enum": [
+                        "PromptPay"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entities.Method"
+                        }
+                    ]
+                },
+                "price": {
+                    "type": "number"
                 },
                 "slot_id": {
-                    "description": "Required, selected by the user",
-                    "type": "string"
-                },
-                "start_date": {
-                    "description": "Required, start of booking",
                     "type": "string"
                 },
                 "vendor_id": {
@@ -543,53 +574,49 @@ const docTemplate = `{
         "dtos.BookingResponse": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
-                },
                 "bookingDate": {
                     "type": "string"
                 },
-                "endDate": {
+                "expiresAt": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
-                "method": {
+                "image": {
                     "type": "string"
                 },
-                "promptPay": {
-                    "$ref": "#/definitions/dtos.PromptPayResponse"
+                "method": {
+                    "$ref": "#/definitions/entities.Method"
+                },
+                "price": {
+                    "type": "number"
                 },
                 "slotId": {
                     "type": "string"
                 },
-                "startDate": {
-                    "type": "string"
-                },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.BookingStatus"
                 },
-                "transaction": {
-                    "$ref": "#/definitions/dtos.TransactionResponse"
+                "transactionId": {
+                    "type": "string"
                 },
                 "vendorId": {
                     "type": "string"
                 }
             }
         },
-        "dtos.CancelBookingRequest": {
+        "dtos.DateRange": {
             "type": "object",
             "required": [
-                "booking_id"
+                "end_date",
+                "start_date"
             ],
             "properties": {
-                "booking_id": {
-                    "description": "The ID of the booking to be canceled.",
+                "end_date": {
                     "type": "string"
                 },
-                "user_id": {
-                    "description": "Optional: The ID of the user requesting the cancellation.",
+                "start_date": {
                     "type": "string"
                 }
             }
@@ -614,7 +641,13 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "firstName": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "lastName": {
                     "type": "string"
                 },
                 "username": {
@@ -690,33 +723,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.PromptPayResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "type": "object",
-                    "properties": {
-                        "qrImage": {
-                            "type": "string"
-                        },
-                        "qrRawData": {
-                            "type": "string"
-                        }
-                    }
-                },
-                "status": {
-                    "type": "object",
-                    "properties": {
-                        "code": {
-                            "type": "integer"
-                        },
-                        "description": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "dtos.RegisterRequest": {
             "type": "object",
             "required": [
@@ -766,114 +772,70 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.SlotRequest": {
+        "dtos.SlotData": {
             "type": "object",
             "required": [
-                "end_time",
-                "market_id",
-                "name",
+                "category",
                 "price",
-                "size",
-                "start_time",
+                "slot_id",
                 "status"
             ],
             "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "market_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "price": {
-                    "type": "number"
-                },
-                "size": {
-                    "type": "string"
-                },
-                "slot_type": {
-                    "type": "string"
-                },
-                "start_time": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "dtos.SlotResponse": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "end_time": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "market_id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
+                "category": {
+                    "enum": [
+                        "clothes",
+                        "food",
+                        "crafts",
+                        "produce",
+                        "electronics",
+                        "services",
+                        "other"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entities.Category"
+                        }
+                    ]
                 },
                 "price": {
                     "type": "number"
                 },
-                "size": {
-                    "type": "string"
-                },
-                "slot_type": {
-                    "type": "string"
-                },
-                "start_time": {
+                "slot_id": {
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "enum": [
+                        "available",
+                        "booked",
+                        "maintenance"
+                    ],
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/entities.SlotStatus"
+                        }
+                    ]
                 }
             }
         },
-        "dtos.TransactionResponse": {
+        "dtos.SlotGenerationRequest": {
             "type": "object",
+            "required": [
+                "date_range",
+                "market_id",
+                "slots"
+            ],
             "properties": {
-                "amount": {
-                    "type": "number"
+                "date_range": {
+                    "$ref": "#/definitions/dtos.DateRange"
                 },
-                "id": {
+                "market_id": {
                     "type": "string"
                 },
-                "method": {
-                    "type": "string"
-                },
-                "paymentId": {
-                    "type": "string"
-                },
-                "ref1": {
-                    "type": "string"
-                },
-                "ref2": {
-                    "type": "string"
-                },
-                "ref3": {
-                    "type": "string"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "transactionDate": {
-                    "type": "string"
-                },
-                "transactionId": {
-                    "type": "string"
+                "slots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.SlotData"
+                    }
                 }
             }
         },
@@ -881,22 +843,29 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "booking_date": {
+                    "description": "Changed from Date to BookingDate",
                     "type": "string"
                 },
                 "created_at": {
                     "type": "string"
                 },
-                "deleted_at": {
-                    "type": "string"
-                },
-                "end_date": {
+                "expires_at": {
                     "type": "string"
                 },
                 "id": {
                     "type": "string"
                 },
+                "market_id": {
+                    "type": "string"
+                },
+                "method": {
+                    "$ref": "#/definitions/entities.Method"
+                },
                 "payment": {
                     "$ref": "#/definitions/entities.Payment"
+                },
+                "price": {
+                    "type": "number"
                 },
                 "slot": {
                     "$ref": "#/definitions/entities.Slot"
@@ -904,11 +873,8 @@ const docTemplate = `{
                 "slot_id": {
                     "type": "string"
                 },
-                "start_date": {
-                    "type": "string"
-                },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.BookingStatus"
                 },
                 "updated_at": {
                     "type": "string"
@@ -920,6 +886,40 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "entities.BookingStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "cancelled",
+                "completed"
+            ],
+            "x-enum-varnames": [
+                "StatusPending",
+                "StatusCancelled",
+                "StatusCompleted"
+            ]
+        },
+        "entities.Category": {
+            "type": "string",
+            "enum": [
+                "clothes",
+                "food",
+                "crafts",
+                "produce",
+                "electronics",
+                "services",
+                "other"
+            ],
+            "x-enum-varnames": [
+                "CategoryClothes",
+                "CategoryFood",
+                "CategoryCrafts",
+                "CategoryProduce",
+                "CategoryElectronics",
+                "CategoryServices",
+                "CategoryOther"
+            ]
         },
         "entities.LoginRequest": {
             "type": "object",
@@ -968,9 +968,6 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
-                "details": {
-                    "type": "string"
-                },
                 "id": {
                     "type": "string"
                 },
@@ -992,6 +989,9 @@ const docTemplate = `{
                 "phone": {
                     "type": "string"
                 },
+                "provider": {
+                    "$ref": "#/definitions/entities.MarketProvider"
+                },
                 "provider_id": {
                     "type": "string"
                 },
@@ -1006,12 +1006,44 @@ const docTemplate = `{
                 }
             }
         },
+        "entities.MarketProvider": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "markets": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Market"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                }
+            }
+        },
+        "entities.Method": {
+            "type": "string",
+            "enum": [
+                "PromptPay"
+            ],
+            "x-enum-varnames": [
+                "MethodPromptPay"
+            ]
+        },
         "entities.Payment": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
-                },
                 "booking": {
                     "$ref": "#/definitions/entities.Booking"
                 },
@@ -1024,42 +1056,64 @@ const docTemplate = `{
                 "deleted_at": {
                     "type": "string"
                 },
+                "expires_at": {
+                    "type": "string"
+                },
                 "id": {
                     "type": "string"
                 },
                 "method": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.Method"
                 },
                 "payment_date": {
                     "type": "string"
                 },
+                "price": {
+                    "type": "number"
+                },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.PaymentStatus"
                 },
                 "transactions": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.Transaction"
-                    }
+                    "$ref": "#/definitions/entities.Transaction"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
+        "entities.PaymentStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "completed",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "PaymentPending",
+                "PaymentCompleted",
+                "PaymentFailed"
+            ]
+        },
         "entities.Slot": {
             "type": "object",
+            "required": [
+                "date"
+            ],
             "properties": {
-                "bookings": {
+                "booking": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/entities.Booking"
                     }
                 },
-                "column": {
-                    "type": "integer"
+                "category": {
+                    "$ref": "#/definitions/entities.Category"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "date": {
                     "type": "string"
                 },
                 "deleted_at": {
@@ -1067,9 +1121,6 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "string"
-                },
-                "market": {
-                    "$ref": "#/definitions/entities.Market"
                 },
                 "market_id": {
                     "type": "string"
@@ -1080,69 +1131,43 @@ const docTemplate = `{
                 "price": {
                     "type": "number"
                 },
-                "row": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "string"
-                },
-                "slot_type": {
-                    "type": "string"
-                },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.SlotStatus"
                 },
                 "updated_at": {
                     "type": "string"
                 }
             }
         },
-        "entities.Stall": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "description": {
-                    "description": "Description of the stall",
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "image": {
-                    "description": "Image of the stall",
-                    "type": "string"
-                },
-                "name": {
-                    "description": "Name of the stall/store",
-                    "type": "string"
-                },
-                "type": {
-                    "description": "Type of the stall (food, clothing, etc.)",
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "vendor_id": {
-                    "type": "string"
-                }
-            }
+        "entities.SlotStatus": {
+            "type": "string",
+            "enum": [
+                "available",
+                "booked",
+                "maintenance"
+            ],
+            "x-enum-varnames": [
+                "StatusAvailable",
+                "StatusBooked",
+                "StatusMaintenance"
+            ]
         },
         "entities.Transaction": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
-                },
                 "created_at": {
                     "type": "string"
                 },
                 "deleted_at": {
                     "type": "string"
                 },
+                "expires_at": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "image": {
                     "type": "string"
                 },
                 "method": {
@@ -1154,6 +1179,9 @@ const docTemplate = `{
                 "payment_id": {
                     "type": "string"
                 },
+                "price": {
+                    "type": "number"
+                },
                 "ref1": {
                     "type": "string"
                 },
@@ -1164,7 +1192,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/entities.TransactionStatus"
                 },
                 "transaction_date": {
                     "type": "string"
@@ -1176,6 +1204,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "entities.TransactionStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "completed",
+                "failed"
+            ],
+            "x-enum-varnames": [
+                "TransactionPending",
+                "TransactionCompleted",
+                "TransactionFailed"
+            ]
         },
         "entities.Vendor": {
             "type": "object",
@@ -1209,12 +1250,6 @@ const docTemplate = `{
                 },
                 "phone": {
                     "type": "string"
-                },
-                "stalls": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entities.Stall"
-                    }
                 },
                 "updated_at": {
                     "type": "string"

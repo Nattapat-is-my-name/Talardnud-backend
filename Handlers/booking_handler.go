@@ -21,8 +21,8 @@ func NewBookingHandler(useCase *Usecase.BookingUseCase) *BookingHandler {
 // @Tags bookings
 // @Accept  json
 // @Produce  json
-// @Param booking body entitiesDtos.BookingRequest true "Booking data"
-// @Success 200 {object} entitiesDtos.BookingResponse
+// @Param booking body dtos.BookingRequest true "Booking data"
+// @Success 200 {object} dtos.BookingResponse
 // @Failure 400 {object} string "Invalid input"
 // @Failure 409 {object} string "Booking already exists"
 // @Failure 500 {object} string "Internal server error"
@@ -37,7 +37,6 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 		})
 	}
 
-	// Call use case method
 	booking, errResponse := h.useCase.CreateBooking(&req)
 	if errResponse != nil {
 		log.Printf("Failed to create booking: %v", errResponse) // Log the error details
@@ -110,3 +109,32 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 //		"data":    booking,
 //	})
 //}
+
+// GetBooking godoc
+// @Summary Get a booking
+// @Description Get a booking with the provided ID
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Booking ID"
+// @Success 200 {object} dtos.BookingResponse
+// @Failure 404 {object} string "Booking not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/get/{id} [get]
+func (h *BookingHandler) GetBooking(c *fiber.Ctx) error {
+	bookingID := c.Params("id")
+	booking, errResponse := h.useCase.GetBooking(bookingID)
+	if errResponse != nil {
+		log.Printf("Failed to get booking with ID %s: %v", bookingID, errResponse) // Log the error details
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to get booking",
+			"details": errResponse,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Booking retrieved successfully",
+		"data":    booking,
+	})
+}

@@ -2,20 +2,20 @@ package dtos
 
 import (
 	"time"
+	entities "tln-backend/Entities"
 )
 
 type BookingResponse struct {
-	ID          string               `json:"id"`
-	SlotID      string               `json:"slotId"`
-	VendorID    string               `json:"vendorId"`
-	BookingDate time.Time            `json:"bookingDate"`
-	StartDate   time.Time            `json:"startDate"`
-	EndDate     time.Time            `json:"endDate"`
-	Status      string               `json:"status"`
-	Amount      float64              `json:"amount"`
-	Method      string               `json:"method"`
-	PromptPay   *PromptPayResponse   `json:"promptPay,omitempty"`
-	Transaction *TransactionResponse `json:"transaction,omitempty"`
+	ID            string                 `json:"id"`
+	SlotID        string                 `json:"slotId"`
+	VendorID      string                 `json:"vendorId"`
+	TransactionID string                 `json:"transactionId"`
+	BookingDate   time.Time              `json:"bookingDate"`
+	Price         float64                `json:"price"`
+	Status        entities.BookingStatus `json:"status"`
+	Method        entities.Method        `json:"method"`
+	Image         string                 `json:"image,omitempty"`
+	ExpiresAt     time.Time              `json:"expiresAt"`
 }
 
 type TransactionResponse struct {

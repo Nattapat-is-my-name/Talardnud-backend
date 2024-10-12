@@ -28,7 +28,7 @@ func NewBookingUseCase(repo contact.IBooking, payment contact.IPayment, paymentU
 	}
 }
 
-func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest) (*entities.Booking, *entitiesDtos.ErrorResponse) {
+func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest) (*entitiesDtos.BookingResponse, *entitiesDtos.ErrorResponse) {
 	if err := validateBooking(bookingReq); err != nil {
 		log.Printf("Validation failed: %v", err)
 		return nil, &entitiesDtos.ErrorResponse{
@@ -135,10 +135,23 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 		}
 	}
 
+	bookingResponse := entitiesDtos.BookingResponse{
+		ID:            bookingEntity.ID,
+		SlotID:        bookingEntity.SlotID,
+		VendorID:      bookingEntity.VendorID,
+		TransactionID: transaction.ID,
+		BookingDate:   bookingEntity.BookingDate,
+		Price:         bookingEntity.Price,
+		Status:        bookingEntity.Status,
+		Method:        bookingEntity.Method,
+		Image:         transaction.Image,
+		ExpiresAt:     transaction.ExpiresAt,
+	}
+
 	// Schedule booking cancellation using BookingService
 	uc.bookingService.ScheduleBookingCancellation(transaction.ID, bookingEntity.ID, bookingEntity.SlotID, expirationTime)
 
-	return bookingEntity, nil
+	return &bookingResponse, nil
 }
 
 // Other methods remain the same...

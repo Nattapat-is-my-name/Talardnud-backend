@@ -118,10 +118,12 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 	}
 
 	response := dtos.GetUserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
-		Bookings: user.Bookings,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		Bookings:  user.Bookings,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
 	}
 
 	return c.Status(fiber.StatusOK).JSON(response)

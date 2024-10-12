@@ -69,16 +69,20 @@ func (h *SlotHandler) GetSlot(c *fiber.Ctx) error {
 // @Tags slots
 // @Accept json
 // @Produce json
-// @Param marketID path string true "Market ID"
+// @Param marketID path string true "MarketID"
 // @Param date path string true "Date"
 // @Success 200 {object} []entities.Slot
-// @Router /slots/markets/{marketID}/dates/{date} [get]
+// @Router /slots/markets/{marketID}/date/{date} [get]
 func (h *SlotHandler) GetSlotByDate(c *fiber.Ctx) error {
 	marketID := c.Params("marketID")
 	selectDate := c.Params("date")
 	slots, errRes := h.useCase.GetSlotsByDate(marketID, selectDate)
 	if errRes != nil {
-		return c.Status(errRes.Code).JSON(slots)
+		return c.Status(errRes.Code).JSON(
+			&entitiesDtos.ErrorResponse{
+				Code:    errRes.Code,
+				Message: errRes.Message,
+			})
 	}
 
 	return c.Status(200).JSON(slots)

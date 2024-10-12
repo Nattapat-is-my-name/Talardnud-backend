@@ -116,6 +116,7 @@ func (s *BookingService) completeBooking(transactionID, paymentID, bookingID, sl
 	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, entities.StatusBooked); err != nil {
 		return fmt.Errorf("error updating slot status: %v", err)
 	}
+	s.RemoveScheduled(bookingID)
 
 	return nil
 }

@@ -37,9 +37,11 @@ func (r *UserRepository) GetUserByID(id string) (*entitiesDtos.GetUserResponse, 
 	}
 
 	getUserResponse := entitiesDtos.GetUserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		Email:    user.Email,
+		ID:        user.ID,
+		Username:  user.Username,
+		Email:     user.Email,
+		FirstName: user.FirstName,
+		LastName:  user.LastName,
 		Bookings: entitiesDtos.BookingDtos{
 			IDs: bookingIDs,
 		},

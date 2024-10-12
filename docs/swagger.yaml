@@ -9,71 +9,62 @@ definitions:
     type: object
   dtos.BookingRequest:
     properties:
-      amount:
-        description: Required, amount to be paid
-        type: number
-      end_date:
-        description: Required, end of booking
+      booking_date:
         type: string
       market_id:
         description: Required, selected by the user
         type: string
       method:
-        description: Required, payment method
-        type: string
+        allOf:
+        - $ref: '#/definitions/entities.Method'
+        enum:
+        - PromptPay
+      price:
+        type: number
       slot_id:
-        description: Required, selected by the user
-        type: string
-      start_date:
-        description: Required, start of booking
         type: string
       vendor_id:
         description: Required, selected by the user
         type: string
     required:
-    - amount
-    - end_date
+    - booking_date
     - market_id
     - method
-    - slot_id
-    - start_date
+    - price
     - vendor_id
     type: object
   dtos.BookingResponse:
     properties:
-      amount:
-        type: number
       bookingDate:
         type: string
-      endDate:
+      expiresAt:
         type: string
       id:
         type: string
-      method:
+      image:
         type: string
-      promptPay:
-        $ref: '#/definitions/dtos.PromptPayResponse'
+      method:
+        $ref: '#/definitions/entities.Method'
+      price:
+        type: number
       slotId:
         type: string
-      startDate:
-        type: string
       status:
+        $ref: '#/definitions/entities.BookingStatus'
+      transactionId:
         type: string
-      transaction:
-        $ref: '#/definitions/dtos.TransactionResponse'
       vendorId:
         type: string
     type: object
-  dtos.CancelBookingRequest:
+  dtos.DateRange:
     properties:
-      booking_id:
-        description: The ID of the booking to be canceled.
+      end_date:
         type: string
-      user_id:
-        description: 'Optional: The ID of the user requesting the cancellation.'
+      start_date:
         type: string
     required:
-    - booking_id
+    - end_date
+    - start_date
     type: object
   dtos.GetListMarketResponse:
     properties:
@@ -88,7 +79,11 @@ definitions:
         $ref: '#/definitions/dtos.BookingDtos'
       email:
         type: string
+      firstName:
+        type: string
       id:
+        type: string
+      lastName:
         type: string
       username:
         type: string
@@ -143,23 +138,6 @@ definitions:
         description: success or error
         type: string
     type: object
-  dtos.PromptPayResponse:
-    properties:
-      data:
-        properties:
-          qrImage:
-            type: string
-          qrRawData:
-            type: string
-        type: object
-      status:
-        properties:
-          code:
-            type: integer
-          description:
-            type: string
-        type: object
-    type: object
   dtos.RegisterRequest:
     properties:
       email:
@@ -196,103 +174,76 @@ definitions:
       username:
         type: string
     type: object
-  dtos.SlotRequest:
+  dtos.SlotData:
     properties:
-      description:
-        type: string
-      end_time:
-        type: string
-      market_id:
-        type: string
-      name:
-        type: string
+      category:
+        allOf:
+        - $ref: '#/definitions/entities.Category'
+        enum:
+        - clothes
+        - food
+        - crafts
+        - produce
+        - electronics
+        - services
+        - other
       price:
         type: number
-      size:
-        type: string
-      slot_type:
-        type: string
-      start_time:
+      slot_id:
         type: string
       status:
-        type: string
+        allOf:
+        - $ref: '#/definitions/entities.SlotStatus'
+        enum:
+        - available
+        - booked
+        - maintenance
     required:
-    - end_time
-    - market_id
-    - name
+    - category
     - price
-    - size
-    - start_time
+    - slot_id
     - status
     type: object
-  dtos.SlotResponse:
+  dtos.SlotGenerationRequest:
     properties:
-      description:
-        type: string
-      end_time:
-        type: string
-      id:
-        type: string
+      date_range:
+        $ref: '#/definitions/dtos.DateRange'
       market_id:
         type: string
-      name:
-        type: string
-      price:
-        type: number
-      size:
-        type: string
-      slot_type:
-        type: string
-      start_time:
-        type: string
-      status:
-        type: string
-    type: object
-  dtos.TransactionResponse:
-    properties:
-      amount:
-        type: number
-      id:
-        type: string
-      method:
-        type: string
-      paymentId:
-        type: string
-      ref1:
-        type: string
-      ref2:
-        type: string
-      ref3:
-        type: string
-      status:
-        type: string
-      transactionDate:
-        type: string
-      transactionId:
-        type: string
+      slots:
+        items:
+          $ref: '#/definitions/dtos.SlotData'
+        type: array
+    required:
+    - date_range
+    - market_id
+    - slots
     type: object
   entities.Booking:
     properties:
       booking_date:
+        description: Changed from Date to BookingDate
         type: string
       created_at:
         type: string
-      deleted_at:
-        type: string
-      end_date:
+      expires_at:
         type: string
       id:
         type: string
+      market_id:
+        type: string
+      method:
+        $ref: '#/definitions/entities.Method'
       payment:
         $ref: '#/definitions/entities.Payment'
+      price:
+        type: number
       slot:
         $ref: '#/definitions/entities.Slot'
       slot_id:
         type: string
-      start_date:
-        type: string
       status:
-        type: string
+        $ref: '#/definitions/entities.BookingStatus'
       updated_at:
         type: string
       vendor:
@@ -300,6 +251,34 @@ definitions:
       vendor_id:
         type: string
     type: object
+  entities.BookingStatus:
+    enum:
+    - pending
+    - cancelled
+    - completed
+    type: string
+    x-enum-varnames:
+    - StatusPending
+    - StatusCancelled
+    - StatusCompleted
+  entities.Category:
+    enum:
+    - clothes
+    - food
+    - crafts
+    - produce
+    - electronics
+    - services
+    - other
+    type: string
+    x-enum-varnames:
+    - CategoryClothes
+    - CategoryFood
+    - CategoryCrafts
+    - CategoryProduce
+    - CategoryElectronics
+    - CategoryServices
+    - CategoryOther
   entities.LoginRequest:
     properties:
       password:
@@ -332,8 +311,6 @@ definitions:
         type: string
       description:
         type: string
-      details:
-        type: string
       id:
         type: string
       image:
@@ -348,6 +325,8 @@ definitions:
         type: string
       phone:
         type: string
+      provider:
+        $ref: '#/definitions/entities.MarketProvider'
       provider_id:
         type: string
       slots:
@@ -357,10 +336,31 @@ definitions:
       updated_at:
         type: string
     type: object
+  entities.MarketProvider:
+    properties:
+      address:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      markets:
+        items:
+          $ref: '#/definitions/entities.Market'
+        type: array
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+  entities.Method:
+    enum:
+    - PromptPay
+    type: string
+    x-enum-varnames:
+    - MethodPromptPay
   entities.Payment:
     properties:
-      amount:
-        type: number
       booking:
         $ref: '#/definitions/entities.Booking'
       booking_id:
@@ -369,86 +369,83 @@ definitions:
         type: string
       deleted_at:
         type: string
+      expires_at:
+        type: string
       id:
         type: string
       method:
-        type: string
+        $ref: '#/definitions/entities.Method'
       payment_date:
         type: string
+      price:
+        type: number
       status:
-        type: string
+        $ref: '#/definitions/entities.PaymentStatus'
       transactions:
-        items:
-          $ref: '#/definitions/entities.Transaction'
-        type: array
+        $ref: '#/definitions/entities.Transaction'
       updated_at:
         type: string
     type: object
+  entities.PaymentStatus:
+    enum:
+    - pending
+    - completed
+    - failed
+    type: string
+    x-enum-varnames:
+    - PaymentPending
+    - PaymentCompleted
+    - PaymentFailed
   entities.Slot:
     properties:
-      bookings:
+      booking:
         items:
           $ref: '#/definitions/entities.Booking'
         type: array
-      column:
-        type: integer
+      category:
+        $ref: '#/definitions/entities.Category'
       created_at:
+        type: string
+      date:
         type: string
       deleted_at:
         type: string
       id:
         type: string
-      market:
-        $ref: '#/definitions/entities.Market'
       market_id:
         type: string
       name:
         type: string
       price:
         type: number
-      row:
-        type: integer
-      size:
-        type: string
-      slot_type:
-        type: string
       status:
-        type: string
+        $ref: '#/definitions/entities.SlotStatus'
       updated_at:
         type: string
+    required:
+    - date
     type: object
-  entities.Stall:
-    properties:
-      created_at:
-        type: string
-      description:
-        description: Description of the stall
-        type: string
-      id:
-        type: string
-      image:
-        description: Image of the stall
-        type: string
-      name:
-        description: Name of the stall/store
-        type: string
-      type:
-        description: Type of the stall (food, clothing, etc.)
-        type: string
-      updated_at:
-        type: string
-      vendor_id:
-        type: string
-    type: object
+  entities.SlotStatus:
+    enum:
+    - available
+    - booked
+    - maintenance
+    type: string
+    x-enum-varnames:
+    - StatusAvailable
+    - StatusBooked
+    - StatusMaintenance
   entities.Transaction:
     properties:
-      amount:
-        type: number
       created_at:
         type: string
       deleted_at:
         type: string
+      expires_at:
+        type: string
       id:
+        type: string
+      image:
         type: string
       method:
         type: string
@@ -456,6 +453,8 @@ definitions:
         $ref: '#/definitions/entities.Payment'
       payment_id:
         type: string
+      price:
+        type: number
       ref1:
         type: string
       ref2:
@@ -463,7 +462,7 @@ definitions:
       ref3:
         type: string
       status:
-        type: string
+        $ref: '#/definitions/entities.TransactionStatus'
       transaction_date:
         type: string
       transaction_id:
@@ -471,6 +470,16 @@ definitions:
       updated_at:
         type: string
     type: object
+  entities.TransactionStatus:
+    enum:
+    - pending
+    - completed
+    - failed
+    type: string
+    x-enum-varnames:
+    - TransactionPending
+    - TransactionCompleted
+    - TransactionFailed
   entities.Vendor:
     properties:
       bookings:
@@ -493,10 +502,6 @@ definitions:
         type: string
       phone:
         type: string
-      stalls:
-        items:
-          $ref: '#/definitions/entities.Stall'
-        type: array
       updated_at:
         type: string
       username:
@@ -575,40 +580,6 @@ paths:
       summary: Register
       tags:
       - auth
-  /bookings/cancel:
-    post:
-      consumes:
-      - application/json
-      description: Cancel a booking with the provided data
-      parameters:
-      - description: Booking data
-        in: body
-        name: booking
-        required: true
-        schema:
-          $ref: '#/definitions/dtos.CancelBookingRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/dtos.BookingResponse'
-        "400":
-          description: Invalid input
-          schema:
-            type: string
-        "409":
-          description: Booking already exists
-          schema:
-            type: string
-        "500":
-          description: Internal server error
-          schema:
-            type: string
-      summary: Cancel a booking
-      tags:
-      - bookings
   /bookings/create:
     post:
       consumes:
@@ -641,6 +612,35 @@ paths:
           schema:
             type: string
       summary: Create a booking
+      tags:
+      - bookings
+  /bookings/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a booking with the provided ID
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BookingResponse'
+        "404":
+          description: Booking not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get a booking
       tags:
       - bookings
   /markets/create:
@@ -711,14 +711,16 @@ paths:
         name: slot
         required: true
         schema:
-          $ref: '#/definitions/dtos.SlotRequest'
+          $ref: '#/definitions/dtos.SlotGenerationRequest'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/dtos.SlotResponse'
+            items:
+              $ref: '#/definitions/entities.Slot'
+            type: array
         "400":
           description: Invalid input
           schema:
@@ -751,10 +753,36 @@ paths:
         "200":
           description: OK
           schema:
-            items:
-              $ref: '#/definitions/dtos.SlotResponse'
-            type: array
+            $ref: '#/definitions/entities.Slot'
       summary: Get all slots
+      tags:
+      - slots
+  /slots/markets/{marketID}/date/{date}:
+    get:
+      consumes:
+      - application/json
+      description: Get slots by date
+      parameters:
+      - description: MarketID
+        in: path
+        name: marketID
+        required: true
+        type: string
+      - description: Date
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Slot'
+            type: array
+      summary: Get slots by date
       tags:
       - slots
   /users/{id}:
