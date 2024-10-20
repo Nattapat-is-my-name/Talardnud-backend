@@ -69,6 +69,98 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/provider/login": {
+            "post": {
+                "description": "Login for market providers with the provided credentials",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Provider Login",
+                "parameters": [
+                    {
+                        "description": "Provider Login data",
+                        "name": "login",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProviderLoginRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.ProviderLoginResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/provider/register": {
+            "post": {
+                "description": "Register a new market provider with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Register Provider",
+                "parameters": [
+                    {
+                        "description": "Register provider request",
+                        "name": "register",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketProviderRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.MarketProvider"
+                        }
+                    },
+                    "400": {
+                        "description": "Failed to register provider",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Provider email already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/register": {
             "post": {
                 "description": "Register a new user with the provided data",
@@ -245,6 +337,47 @@ const docTemplate = `{
                 }
             }
         },
+        "/markets/edit/{id}": {
+            "patch": {
+                "description": "Edit a market",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Edit a market",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Market object that needs to be updated",
+                        "name": "market",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketEditRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.Market"
+                        }
+                    }
+                }
+            }
+        },
         "/markets/get": {
             "get": {
                 "consumes": [
@@ -299,9 +432,41 @@ const docTemplate = `{
                 }
             }
         },
-        "/slots/create": {
-            "post": {
-                "description": "Create a new slot with the provided data",
+        "/markets/provider/get/{id}": {
+            "get": {
+                "description": "Get a market by Provider ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Market"
+                ],
+                "summary": "Get a market by Provider ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.MarketResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/delete/{id}": {
+            "delete": {
+                "description": "Delete slot",
                 "consumes": [
                     "application/json"
                 ],
@@ -311,44 +476,108 @@ const docTemplate = `{
                 "tags": [
                     "slots"
                 ],
-                "summary": "Create a slot",
+                "summary": "Delete slot",
                 "parameters": [
                     {
-                        "description": "Slot data",
-                        "name": "slot",
+                        "type": "string",
+                        "description": "Slot ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/delete/{id}/zone/{zoneID}/date/{date}": {
+            "delete": {
+                "description": "Delete slot by date and zone",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Delete slot by date and zone",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Slot ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Zone ID",
+                        "name": "zoneID",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Date",
+                        "name": "date",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/edit/{id}": {
+            "patch": {
+                "description": "Edit slot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Edit slot",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Slot ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Slot update data",
+                        "name": "updateDTO",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dtos.SlotGenerationRequest"
+                            "$ref": "#/definitions/dtos.SlotUpdateDTO"
                         }
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/entities.Slot"
-                            }
-                        }
-                    },
-                    "400": {
-                        "description": "Invalid input",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "409": {
-                        "description": "Slot already exists",
-                        "schema": {
-                            "type": "string"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal server error",
-                        "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/entities.Slot"
                         }
                     }
                 }
@@ -423,6 +652,82 @@ const docTemplate = `{
                             "items": {
                                 "$ref": "#/definitions/entities.Slot"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/provider/get/{id}": {
+            "get": {
+                "description": "Get provider slots",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Get provider slots",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Provider ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Slot"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/slots/{marketId}/create": {
+            "post": {
+                "description": "Create or update layout",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "slots"
+                ],
+                "summary": "Create or update layout",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "marketId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Layout data",
+                        "name": "layout",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.LayoutRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -606,21 +911,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.DateRange": {
-            "type": "object",
-            "required": [
-                "end_date",
-                "start_date"
-            ],
-            "properties": {
-                "end_date": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                }
-            }
-        },
         "dtos.GetListMarketResponse": {
             "type": "object",
             "properties": {
@@ -651,6 +941,100 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.LayoutRequest": {
+            "type": "object",
+            "properties": {
+                "layout": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dtos.ZoneLayout"
+                    }
+                }
+            }
+        },
+        "dtos.MarketEditRequest": {
+            "type": "object",
+            "required": [
+                "address",
+                "close_time",
+                "name",
+                "open_time",
+                "provider_id"
+            ],
+            "properties": {
+                "address": {
+                    "description": "Required, address of the market",
+                    "type": "string"
+                },
+                "close_time": {
+                    "description": "Required, closing time in HH:mm format",
+                    "type": "string"
+                },
+                "description": {
+                    "description": "Optional, description of the market",
+                    "type": "string"
+                },
+                "image": {
+                    "description": "Optional, URL or path to the market image",
+                    "type": "string"
+                },
+                "latitude": {
+                    "description": "Optional, latitude coordinate",
+                    "type": "string"
+                },
+                "layout_image": {
+                    "description": "Optional, URL or path to the market layout image",
+                    "type": "string"
+                },
+                "longitude": {
+                    "description": "Optional, longitude coordinate",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Required, name of the market",
+                    "type": "string"
+                },
+                "open_time": {
+                    "description": "Required, opening time in HH:mm format",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Optional, phone number of the market",
+                    "type": "string"
+                },
+                "provider_id": {
+                    "description": "Required, UUID of the provider",
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.MarketProviderRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "phone",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "description": "Required, email address of the provider",
+                    "type": "string"
+                },
+                "password": {
+                    "description": "Required, password of the provider",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "Required, phone number of the provider",
+                    "type": "string"
+                },
+                "username": {
+                    "description": "Required, username of the provider",
                     "type": "string"
                 }
             }
@@ -723,6 +1107,33 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.ProviderLoginRequest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "minLength": 8
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dtos.ProviderLoginResponse": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "provider_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dtos.RegisterRequest": {
             "type": "object",
             "required": [
@@ -772,70 +1183,63 @@ const docTemplate = `{
                 }
             }
         },
-        "dtos.SlotData": {
+        "dtos.SlotUpdateDTO": {
             "type": "object",
-            "required": [
-                "category",
-                "price",
-                "slot_id",
-                "status"
-            ],
             "properties": {
                 "category": {
-                    "enum": [
-                        "clothes",
-                        "food",
-                        "crafts",
-                        "produce",
-                        "electronics",
-                        "services",
-                        "other"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entities.Category"
-                        }
-                    ]
+                    "$ref": "#/definitions/entities.Category"
+                },
+                "height": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
                 },
                 "price": {
                     "type": "number"
                 },
-                "slot_id": {
-                    "type": "string"
-                },
                 "status": {
-                    "enum": [
-                        "available",
-                        "booked",
-                        "maintenance"
-                    ],
-                    "allOf": [
-                        {
-                            "$ref": "#/definitions/entities.SlotStatus"
-                        }
-                    ]
+                    "$ref": "#/definitions/entities.SlotStatus"
+                },
+                "width": {
+                    "type": "number"
                 }
             }
         },
-        "dtos.SlotGenerationRequest": {
+        "dtos.Stall": {
             "type": "object",
-            "required": [
-                "date_range",
-                "market_id",
-                "slots"
-            ],
             "properties": {
-                "date_range": {
-                    "$ref": "#/definitions/dtos.DateRange"
+                "height": {
+                    "type": "integer"
                 },
-                "market_id": {
+                "name": {
                     "type": "string"
                 },
-                "slots": {
+                "price": {
+                    "type": "number"
+                },
+                "stallType": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dtos.ZoneLayout": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "stalls": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/dtos.SlotData"
+                        "$ref": "#/definitions/dtos.Stall"
                     }
+                },
+                "zone": {
+                    "type": "string"
                 }
             }
         },
@@ -977,6 +1381,9 @@ const docTemplate = `{
                 "latitude": {
                     "type": "string"
                 },
+                "layout_image": {
+                    "type": "string"
+                },
                 "longitude": {
                     "type": "string"
                 },
@@ -1027,7 +1434,13 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "password": {
+                    "type": "string"
+                },
                 "phone": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }
@@ -1119,6 +1532,9 @@ const docTemplate = `{
                 "deleted_at": {
                     "type": "string"
                 },
+                "height": {
+                    "type": "integer"
+                },
                 "id": {
                     "type": "string"
                 },
@@ -1135,6 +1551,12 @@ const docTemplate = `{
                     "$ref": "#/definitions/entities.SlotStatus"
                 },
                 "updated_at": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                },
+                "zone": {
                     "type": "string"
                 }
             }

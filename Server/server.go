@@ -12,22 +12,26 @@ import (
 )
 
 type Server struct {
-	App      *fiber.App
-	UserRepo *Repository.UserRepository
+	App          *fiber.App
+	UserRepo     *Repository.UserRepository
+	ProviderRepo *Repository.ProviderRepository
 }
 
-func NewServer(userRepo *Repository.UserRepository) *Server {
+func NewServer(userRepo *Repository.UserRepository, providerRepo *Repository.ProviderRepository) *Server {
 	app := fiber.New()
 	app.Use(logger.New())
 	app.Use(recover.New())
 	app.Use(cors.New())
-	return &Server{App: app, UserRepo: userRepo}
+	return &Server{
+		App:          app,
+		UserRepo:     userRepo,
+		ProviderRepo: providerRepo,
+	}
 }
 
 func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
-	authMiddleware := middleware.JWTAuthMiddleware(s.UserRepo)
-
-	//create endpoint
+	authMiddleware := middleware.JWTAuthMiddleware(s.UserRepo, s.ProviderRepo)
+	providerMiddleware := middleware.ProviderAuthMiddleware()
 
 	v1 := s.App.Group("/api/v1")
 
@@ -35,18 +39,22 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	userGroup.Delete("/:id", allHandlers.UserHandler.DeleteUser)
 	userGroup.Get("/:id", allHandlers.UserHandler.GetUserByID)
 
-	providerGroup := v1.Group("/Providers")
-	providerGroup.Post("/create", allHandlers.MarketProvider.CreateProvider)
+	providerGroup := v1.Group("/Providers", authMiddleware, providerMiddleware)
+
 	providerGroup.Put("/update", allHandlers.MarketProvider.UpdateProvider)
 
 	marketGroup := v1.Group("/Markets")
-	marketGroup.Post("/create", allHandlers.MarketHandler.CreateMarket)
+	marketGroup.Post("/create", allHandlers.MarketHandler.CreateMarket, providerMiddleware)
 	marketGroup.Get("/get", allHandlers.MarketHandler.GetMarket)
+	marketGroup.Patch("/edit/:id", allHandlers.MarketHandler.EditMarket, providerMiddleware)
 	marketGroup.Get("/get/:id", allHandlers.MarketHandler.GetMarketByID)
+	marketGroup.Get("/provider/get/:id", allHandlers.MarketHandler.GetMarketByProviderID, providerMiddleware)
 
 	authGroup := v1.Group("/Auth")
 	authGroup.Post("/register", allHandlers.AuthHandler.Register)
 	authGroup.Post("/login", allHandlers.AuthHandler.Login)
+	authGroup.Post("/provider/login", allHandlers.AuthHandler.ProviderLogin)
+	authGroup.Post("/provider/register", allHandlers.AuthHandler.RegisterProvider)
 
 	bookingGroup := v1.Group("/Bookings", authMiddleware)
 	bookingGroup.Post("/create", allHandlers.BookingHandler.CreateBooking)
@@ -54,9 +62,13 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	//bookingGroup.Delete("/cancel", allHandlers.BookingHandler.CancelBooking)
 
 	slotGroup := v1.Group("/Slots")
-	slotGroup.Post("/create", allHandlers.SlotHandler.CreateSlot)
+	slotGroup.Post("/:marketId/create", allHandlers.SlotHandler.CreateOrUpdateLayout, providerMiddleware)
 	slotGroup.Get("/get/:id", allHandlers.SlotHandler.GetSlot)
-	slotGroup.Get("/markets/:marketID/date/:date", allHandlers.SlotHandler.GetSlotByDate)
+	slotGroup.Patch("/edit/:id", allHandlers.SlotHandler.EditSlot, providerMiddleware)
+	slotGroup.Delete("/delete/:id", allHandlers.SlotHandler.DeleteSlot, providerMiddleware)
+	slotGroup.Get("/provider/get/:id", allHandlers.SlotHandler.GetProviderSlots, providerMiddleware)
+	slotGroup.Get("/markets/:marketID/date/:date", allHandlers.SlotHandler.GetSlotByDate, providerMiddleware)
+	slotGroup.Delete("/delete/:id/zone/:zoneID/date/:date", allHandlers.SlotHandler.DeleteSlotByDateAndZone, providerMiddleware)
 
 	//paymentGroup := v1.Group("/Payments", authMiddleware)x
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)

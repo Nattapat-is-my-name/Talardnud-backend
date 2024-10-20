@@ -10,7 +10,8 @@ type Market struct {
 	Phone       string         `gorm:"type:varchar(20)" json:"phone"`
 	Address     string         `gorm:"type:varchar(255)" json:"address"`
 	Description string         `gorm:"type:text" json:"description"`
-	Image       string         `gorm:"type:varchar(255)" json:"image"`
+	Image       string         `gorm:"type:text" json:"image"`
+	LayoutImage string         `gorm:"type:text" json:"layout_image"`
 	OpenTime    string         `gorm:"type:varchar(10)" json:"open_time"`
 	CloseTime   string         `gorm:"type:varchar(10)" json:"close_time"`
 	Latitude    string         `gorm:"type:varchar(20)" json:"latitude"`

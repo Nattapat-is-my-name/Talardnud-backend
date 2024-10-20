@@ -33,12 +33,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	allHandlers, userRepo, err := App.InitializeHandlers(db)
+	allHandlers, userRepo, providerRepo, err := App.InitializeHandlers(db)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	server := App.InitializeServer(userRepo)
+	server := App.InitializeServer(userRepo, providerRepo)
 	server.MapHandlers(allHandlers)
 
 	address := fmt.Sprintf("%s:%s", config.App.Host, config.App.Port)

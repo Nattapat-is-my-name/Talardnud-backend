@@ -16,13 +16,13 @@ func NewProviderRepository(db *gorm.DB) *ProviderRepository {
 }
 
 // CreateProvider inserts a new provider into the database.
-func (pr *ProviderRepository) CreateProvider(provider *entities.MarketProvider) error {
-	if err := pr.db.Create(provider).Error; err != nil {
-		log.Printf("Error creating provider: %v", err)
-		return err
-	}
-	return nil
-}
+//func (pr *ProviderRepository) CreateProvider(provider *entities.MarketProvider) error {
+//	if err := pr.db.Create(provider).Error; err != nil {
+//		log.Printf("Error creating provider: %v", err)
+//		return err
+//	}
+//	return nil
+//}
 
 // UpdateProvider updates an existing provider in the database.
 func (pr *ProviderRepository) UpdateProvider(provider *entities.MarketProvider) error {
@@ -67,11 +67,11 @@ func (pr *ProviderRepository) GetAllProviders() ([]*entities.MarketProvider, err
 }
 
 // CheckProviderByEmail checks if a provider exists by its email.
-func (pr *ProviderRepository) CheckProviderByEmail(email string) (*entities.MarketProvider, error) {
+func (pr *ProviderRepository) CheckProviderByUsername(username string) (*entities.MarketProvider, error) {
 	var provider entities.MarketProvider
-	if err := pr.db.First(&provider, "email = ?", email).Error; err != nil {
+	if err := pr.db.First(&provider, "username = ?", username).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			log.Printf("Provider not found with email: %s", email)
+			log.Printf("Provider not found with email: %s", username)
 			return nil, nil
 		}
 		log.Printf("Error retrieving provider by email: %v", err)

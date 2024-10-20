@@ -106,3 +106,31 @@ func (repo *AuthRepository) IsUsernameAndEmailExists(username, email string) (bo
 	// Neither username nor email exists
 	return false, nil
 }
+
+func (repo *AuthRepository) ProviderLogin(username, password string) (entities.MarketProvider, error) {
+	var provider entities.MarketProvider
+
+	// Find the provider by username
+	if err := repo.db.Where("username = ?", username).First(&provider).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return entities.MarketProvider{}, errors.New("provider not found")
+		}
+		return entities.MarketProvider{}, err
+	}
+	// Check if the password matches
+	if !checkPasswordHash(password, provider.Password) {
+		return entities.MarketProvider{}, errors.New("invalid password")
+	}
+
+	return provider, nil
+}
+
+func (repo *AuthRepository) ProviderRegister(provider *entities.MarketProvider) error {
+	if provider.Username == "" || provider.Email == "" {
+		return errors.New("username and Email are required")
+	}
+	if err := repo.db.Create(provider).Error; err != nil {
+		return err
+	}
+	return nil
+}

@@ -11,5 +11,7 @@ type IMarket interface {
 	GetProviderByID(providerID string) (*entities.MarketProvider, *entitiesDtos.ErrorResponse)
 	GetMarketWithProviderByID(marketID string) (*entities.Market, *entitiesDtos.ErrorResponse)
 	GetMarkets() ([]entities.Market, *entitiesDtos.ErrorResponse)
-	GetMarketByID(marketID string) (*entities.Market, *entitiesDtos.ErrorResponse)
+	GetMarketByID(marketID string) ([]entities.Market, *entitiesDtos.ErrorResponse)
+	GetMarketByProviderID(providerID string) ([]entities.Market, *entitiesDtos.ErrorResponse)
+	EditMarket(marketID string, marketReq *entitiesDtos.MarketEditRequest) (*entities.Market, *entitiesDtos.ErrorResponse)
 }

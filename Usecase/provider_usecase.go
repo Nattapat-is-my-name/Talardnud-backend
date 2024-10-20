@@ -2,7 +2,6 @@ package Usecase
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	entities "tln-backend/Entities"
 	entitiesDtos "tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
@@ -18,52 +17,54 @@ func NewProviderUseCase(repo Interfaces.IProvider) *ProviderUseCase {
 	}
 }
 
-// CreateProvider creates a new provider and returns an error response if there's an issue.
-func (uc *ProviderUseCase) CreateProvider(provider *entitiesDtos.MarketProviderRequest) (*entities.MarketProvider, *entitiesDtos.ErrorResponse) {
-	// Check if provider with email already exists
-	existingProvider, err := uc.repo.CheckProviderByEmail(provider.Email)
-	if err != nil {
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("Error checking existing provider: %v", err),
-		}
-	}
-
-	// If a provider with this email already exists, return an error
-	if existingProvider != nil {
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    400,
-			Message: "Provider with this email already exists",
-		}
-	}
-
-	// Continue with creating the new provider
-	var providerEntities entities.MarketProvider
-	id, err := uuid.NewUUID()
-	if err != nil {
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("Failed to generate UUID: %v", err),
-		}
-	}
-
-	providerEntities = entities.MarketProvider{
-		ID:      id.String(),
-		Name:    provider.Name,
-		Phone:   provider.Phone,
-		Email:   provider.Email,
-		Address: provider.Address,
-	}
-
-	if err := uc.repo.CreateProvider(&providerEntities); err != nil {
-		return nil, &entitiesDtos.ErrorResponse{
-			Code:    500,
-			Message: fmt.Sprintf("Failed to create provider: %v", err),
-		}
-	}
-
-	return &providerEntities, nil
-}
+//
+//// CreateProvider creates a new provider and returns an error response if there's an issue.
+//func (uc *ProviderUseCase) CreateProvider(provider *entitiesDtos.MarketProviderRequest) (*entities.MarketProvider, *entitiesDtos.ErrorResponse) {
+//	// Check if provider with email already exists
+//	existingProvider, err := uc.repo.CheckProviderByUsername(provider.Username)
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Error checking existing provider: %v", err),
+//		}
+//	}
+//
+//	// If a provider with this username already exists, return an error
+//	if existingProvider != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    400,
+//			Message: "Provider with this username already exists",
+//		}
+//	}
+//
+//	// Continue with creating the new provider
+//	var providerEntities entities.MarketProvider
+//	id, err := uuid.NewUUID()
+//	if err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to generate UUID: %v", err),
+//		}
+//	}
+//
+//	providerEntities = entities.MarketProvider{
+//		ID:       id.String(),
+//		Name:     provider.Name,
+//		Phone:    provider.Phone,
+//		Email:    provider.Email,
+//		Username: provider.Username,
+//		Password: provider.Password,
+//	}
+//
+//	if err := uc.repo.CreateProvider(&providerEntities); err != nil {
+//		return nil, &entitiesDtos.ErrorResponse{
+//			Code:    500,
+//			Message: fmt.Sprintf("Failed to create provider: %v", err),
+//		}
+//	}
+//
+//	return &providerEntities, nil
+//}
 
 // UpdateProvider updates an existing provider and returns an error response if there's an issue.
 func (uc *ProviderUseCase) UpdateProvider(provider *entities.MarketProvider) (*entities.MarketProvider, *entitiesDtos.ErrorResponse) {

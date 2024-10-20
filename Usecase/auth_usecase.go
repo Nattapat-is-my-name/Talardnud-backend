@@ -1,7 +1,10 @@
 package Usecase
 
 import (
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
+	"os"
+	"time"
 	entities "tln-backend/Entities"
 	"tln-backend/Entities/dtos"
 	"tln-backend/Interfaces"
@@ -74,4 +77,82 @@ func (uc *AuthUseCase) Register(username, password, email, phone string) (dtos.R
 	}
 
 	return response, nil
+}
+
+func (uc *AuthUseCase) ProviderLogin(username, password string) (dtos.ProviderLoginResponse, error) {
+	// Authenticate the provider
+	provider, err := uc.repo.ProviderLogin(username, password)
+	if err != nil {
+		return dtos.ProviderLoginResponse{}, err
+	}
+
+	// Generate JWT token
+	tokenString, err := uc.generateProviderToken(&provider)
+	if err != nil {
+		return dtos.ProviderLoginResponse{}, err
+	}
+
+	return dtos.ProviderLoginResponse{
+		AccessToken: tokenString,
+		ProviderID:  provider.ID,
+	}, nil
+}
+
+func (uc *AuthUseCase) RegisterProvider(username, phone, email, password string) (entities.MarketProvider, *dtos.ErrorResponse) {
+	// Check if the email already exists
+	exists, errResponse := uc.repo.IsUsernameAndEmailExists(username, email)
+	if errResponse != nil {
+		return entities.MarketProvider{}, errResponse
+	}
+	if exists {
+		return entities.MarketProvider{}, &dtos.ErrorResponse{
+			Code:    409,
+			Message: "Provider email already exists",
+		}
+	}
+
+	hashedPassword, err := uc.auth.HashPassword(password)
+	if err != nil {
+		return entities.MarketProvider{}, &dtos.ErrorResponse{
+			Code:    500,
+			Message: "Error hashing password: " + err.Error(),
+		}
+	}
+	// Create a new market provider
+	newProvider := entities.MarketProvider{
+		ID:       uuid.NewString(),
+		Username: username,
+		Password: hashedPassword,
+		Phone:    phone,
+		Email:    email,
+	}
+
+	// Register the new provider
+	if err := uc.repo.ProviderRegister(&newProvider); err != nil {
+		return entities.MarketProvider{}, &dtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to register provider: " + err.Error(),
+		}
+	}
+
+	// Convert to ProviderRegisterResponse
+	response := entities.MarketProvider{
+		ID:       newProvider.ID,
+		Username: newProvider.Username,
+		Phone:    newProvider.Phone,
+		Email:    newProvider.Email,
+	}
+
+	return response, nil
+}
+
+func (uc *AuthUseCase) generateProviderToken(provider *entities.MarketProvider) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["sub"] = provider.ID
+	claims["username"] = provider.Username
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims["role"] = "provider"
+
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 }

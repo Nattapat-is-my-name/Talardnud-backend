@@ -8,6 +8,9 @@ type Slot struct {
 	ID        string     `gorm:"primaryKey;column:id" json:"id"`
 	MarketID  string     `gorm:"type:varchar(36);not null" json:"market_id"`
 	Name      string     `gorm:"type:varchar(100);not null" json:"name"`
+	Zone      string     `gorm:"type:varchar(50);not null" json:"zone"`
+	Width     int        `gorm:"type:int;not null" json:"width"`
+	Height    int        `gorm:"type:int;not null" json:"height"`
 	Price     float64    `gorm:"type:decimal(10,2);not null" json:"price"`
 	Status    SlotStatus `gorm:"type:varchar(20);not null" json:"status"`
 	Category  Category   `gorm:"type:varchar(50);not null" json:"category"`

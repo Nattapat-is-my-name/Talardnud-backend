@@ -15,24 +15,6 @@ func NewMarketProvider(useCase *Usecase.ProviderUseCase) *MarketProvider {
 	return &MarketProvider{useCase: useCase}
 }
 
-func (uc *MarketProvider) CreateProvider(c *fiber.Ctx) error {
-	var marketProvider entitiesDtos.MarketProviderRequest
-
-	if err := c.BodyParser(&marketProvider); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(&entitiesDtos.ErrorResponse{
-			Code:    fiber.StatusBadRequest,
-			Message: "Invalid input: unable to parse request body",
-		})
-	}
-
-	createdProvider, errRes := uc.useCase.CreateProvider(&marketProvider)
-	if errRes != nil {
-		return c.Status(errRes.Code).JSON(errRes)
-	}
-
-	return c.Status(fiber.StatusCreated).JSON(createdProvider)
-}
-
 func (uc *MarketProvider) UpdateProvider(c *fiber.Ctx) error {
 	var marketProvider entities.MarketProvider
 

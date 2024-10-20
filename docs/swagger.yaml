@@ -56,16 +56,6 @@ definitions:
       vendorId:
         type: string
     type: object
-  dtos.DateRange:
-    properties:
-      end_date:
-        type: string
-      start_date:
-        type: string
-    required:
-    - end_date
-    - start_date
-    type: object
   dtos.GetListMarketResponse:
     properties:
       market:
@@ -87,6 +77,75 @@ definitions:
         type: string
       username:
         type: string
+    type: object
+  dtos.LayoutRequest:
+    properties:
+      layout:
+        items:
+          $ref: '#/definitions/dtos.ZoneLayout'
+        type: array
+    type: object
+  dtos.MarketEditRequest:
+    properties:
+      address:
+        description: Required, address of the market
+        type: string
+      close_time:
+        description: Required, closing time in HH:mm format
+        type: string
+      description:
+        description: Optional, description of the market
+        type: string
+      image:
+        description: Optional, URL or path to the market image
+        type: string
+      latitude:
+        description: Optional, latitude coordinate
+        type: string
+      layout_image:
+        description: Optional, URL or path to the market layout image
+        type: string
+      longitude:
+        description: Optional, longitude coordinate
+        type: string
+      name:
+        description: Required, name of the market
+        type: string
+      open_time:
+        description: Required, opening time in HH:mm format
+        type: string
+      phone:
+        description: Optional, phone number of the market
+        type: string
+      provider_id:
+        description: Required, UUID of the provider
+        type: string
+    required:
+    - address
+    - close_time
+    - name
+    - open_time
+    - provider_id
+    type: object
+  dtos.MarketProviderRequest:
+    properties:
+      email:
+        description: Required, email address of the provider
+        type: string
+      password:
+        description: Required, password of the provider
+        type: string
+      phone:
+        description: Required, phone number of the provider
+        type: string
+      username:
+        description: Required, username of the provider
+        type: string
+    required:
+    - email
+    - password
+    - phone
+    - username
     type: object
   dtos.MarketRequest:
     properties:
@@ -138,6 +197,24 @@ definitions:
         description: success or error
         type: string
     type: object
+  dtos.ProviderLoginRequest:
+    properties:
+      password:
+        minLength: 8
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dtos.ProviderLoginResponse:
+    properties:
+      access_token:
+        type: string
+      provider_id:
+        type: string
+    type: object
   dtos.RegisterRequest:
     properties:
       email:
@@ -174,50 +251,44 @@ definitions:
       username:
         type: string
     type: object
-  dtos.SlotData:
+  dtos.SlotUpdateDTO:
     properties:
       category:
-        allOf:
-        - $ref: '#/definitions/entities.Category'
-        enum:
-        - clothes
-        - food
-        - crafts
-        - produce
-        - electronics
-        - services
-        - other
+        $ref: '#/definitions/entities.Category'
+      height:
+        type: number
+      name:
+        type: string
       price:
         type: number
-      slot_id:
-        type: string
       status:
-        allOf:
-        - $ref: '#/definitions/entities.SlotStatus'
-        enum:
-        - available
-        - booked
-        - maintenance
-    required:
-    - category
-    - price
-    - slot_id
-    - status
+        $ref: '#/definitions/entities.SlotStatus'
+      width:
+        type: number
     type: object
-  dtos.SlotGenerationRequest:
+  dtos.Stall:
     properties:
-      date_range:
-        $ref: '#/definitions/dtos.DateRange'
-      market_id:
+      height:
+        type: integer
+      name:
         type: string
-      slots:
+      price:
+        type: number
+      stallType:
+        type: string
+      width:
+        type: integer
+    type: object
+  dtos.ZoneLayout:
+    properties:
+      date:
+        type: string
+      stalls:
         items:
-          $ref: '#/definitions/dtos.SlotData'
+          $ref: '#/definitions/dtos.Stall'
         type: array
-    required:
-    - date_range
-    - market_id
-    - slots
+      zone:
+        type: string
     type: object
   entities.Booking:
     properties:
@@ -317,6 +388,8 @@ definitions:
         type: string
       latitude:
         type: string
+      layout_image:
+        type: string
       longitude:
         type: string
       name:
@@ -350,7 +423,11 @@ definitions:
         type: array
       name:
         type: string
+      password:
+        type: string
       phone:
+        type: string
+      username:
         type: string
     type: object
   entities.Method:
@@ -410,6 +487,8 @@ definitions:
         type: string
       deleted_at:
         type: string
+      height:
+        type: integer
       id:
         type: string
       market_id:
@@ -421,6 +500,10 @@ definitions:
       status:
         $ref: '#/definitions/entities.SlotStatus'
       updated_at:
+        type: string
+      width:
+        type: integer
+      zone:
         type: string
     required:
     - date
@@ -550,6 +633,66 @@ paths:
       summary: Login
       tags:
       - auth
+  /auth/provider/login:
+    post:
+      consumes:
+      - application/json
+      description: Login for market providers with the provided credentials
+      parameters:
+      - description: Provider Login data
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ProviderLoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.ProviderLoginResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+      summary: Provider Login
+      tags:
+      - auth
+  /auth/provider/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new market provider with the provided data
+      parameters:
+      - description: Register provider request
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.MarketProviderRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.MarketProvider'
+        "400":
+          description: Failed to register provider
+          schema:
+            type: string
+        "409":
+          description: Provider email already exists
+          schema:
+            type: string
+      summary: Register Provider
+      tags:
+      - auth
   /auth/register:
     post:
       consumes:
@@ -665,6 +808,33 @@ paths:
       summary: Create a new market
       tags:
       - Market
+  /markets/edit/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Edit a market
+      parameters:
+      - description: Market ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Market object that needs to be updated
+        in: body
+        name: market
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.MarketEditRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Market'
+      summary: Edit a market
+      tags:
+      - Market
   /markets/get:
     get:
       consumes:
@@ -700,40 +870,131 @@ paths:
       summary: Get a market by ID
       tags:
       - Market
-  /slots/create:
-    post:
+  /markets/provider/get/{id}:
+    get:
       consumes:
       - application/json
-      description: Create a new slot with the provided data
+      description: Get a market by Provider ID
       parameters:
-      - description: Slot data
-        in: body
-        name: slot
+      - description: Provider ID
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/dtos.SlotGenerationRequest'
+        type: string
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            items:
-              $ref: '#/definitions/entities.Slot'
-            type: array
-        "400":
-          description: Invalid input
+            $ref: '#/definitions/dtos.MarketResponse'
+      summary: Get a market by Provider ID
+      tags:
+      - Market
+  /slots/{marketId}/create:
+    post:
+      consumes:
+      - application/json
+      description: Create or update layout
+      parameters:
+      - description: Market ID
+        in: path
+        name: marketId
+        required: true
+        type: string
+      - description: Layout data
+        in: body
+        name: layout
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.LayoutRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
             type: string
-        "409":
-          description: Slot already exists
+      summary: Create or update layout
+      tags:
+      - slots
+  /slots/delete/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete slot
+      parameters:
+      - description: Slot ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
             type: string
-        "500":
-          description: Internal server error
+      summary: Delete slot
+      tags:
+      - slots
+  /slots/delete/{id}/zone/{zoneID}/date/{date}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete slot by date and zone
+      parameters:
+      - description: Slot ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Zone ID
+        in: path
+        name: zoneID
+        required: true
+        type: string
+      - description: Date
+        in: path
+        name: date
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
           schema:
             type: string
-      summary: Create a slot
+      summary: Delete slot by date and zone
+      tags:
+      - slots
+  /slots/edit/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: Edit slot
+      parameters:
+      - description: Slot ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Slot update data
+        in: body
+        name: updateDTO
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.SlotUpdateDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.Slot'
+      summary: Edit slot
       tags:
       - slots
   /slots/get/{id}:
@@ -783,6 +1044,29 @@ paths:
               $ref: '#/definitions/entities.Slot'
             type: array
       summary: Get slots by date
+      tags:
+      - slots
+  /slots/provider/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get provider slots
+      parameters:
+      - description: Provider ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Slot'
+            type: array
+      summary: Get provider slots
       tags:
       - slots
   /users/{id}:

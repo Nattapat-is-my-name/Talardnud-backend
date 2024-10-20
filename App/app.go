@@ -42,10 +42,11 @@ func InitializeDatabase() (*gorm.DB, error) {
 	return Database.NewDB()
 }
 
-func InitializeServer(userRepo *Repository.UserRepository) *Server.Server {
-	return Server.NewServer(userRepo)
+func InitializeServer(userRepo *Repository.UserRepository, providerRepo *Repository.ProviderRepository) *Server.Server {
+	return Server.NewServer(userRepo, providerRepo)
 }
-func InitializeHandlers(db *gorm.DB) (*Handlers.AllHandlers, *Repository.UserRepository, error) {
+
+func InitializeHandlers(db *gorm.DB) (*Handlers.AllHandlers, *Repository.UserRepository, *Repository.ProviderRepository, error) {
 	hashService := Services.NewHashService()
 	paymentService := Services.NewPaymentService()
 
@@ -88,7 +89,7 @@ func InitializeHandlers(db *gorm.DB) (*Handlers.AllHandlers, *Repository.UserRep
 		SlotHandler:    slotHandler,
 	}
 
-	return allHandlers, userRepo, nil
+	return allHandlers, userRepo, providerRepo, nil
 }
 
 func StartServer(server *Server.Server, address string) {

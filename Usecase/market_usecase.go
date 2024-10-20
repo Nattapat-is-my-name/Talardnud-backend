@@ -80,6 +80,48 @@ func (uc *MarketUseCase) CreateMarket(marketReq *entitiesDtos.MarketRequest) (*e
 	return createdMarket, nil
 }
 
+// edit market
+func (uc *MarketUseCase) EditMarket(marketID string, marketReq *entitiesDtos.MarketEditRequest) (*entities.Market, *entitiesDtos.ErrorResponse) {
+	// Check if the market exists
+	_, errRes := uc.repo.GetMarketByID(marketID)
+	if errRes != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Market not found",
+		}
+	}
+
+	// Check if the provider exists
+	_, errRes = uc.repo.GetProviderByID(marketReq.ProviderID)
+	if errRes != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Provider not found",
+		}
+	}
+
+	// Call the EditMarket function in the repository with marketID and marketReq
+	_, err := uc.repo.EditMarket(marketID, marketReq)
+	if err != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to edit market: " + err.Error(),
+		}
+	}
+
+	// Retrieve the market with full provider details
+	editedMarket, errRes := uc.repo.GetMarketWithProviderByID(marketID)
+	if errRes != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to retrieve market details: " + errRes.Message,
+		}
+	}
+
+	// Return the edited market with provider details
+	return editedMarket, nil
+}
+
 func (uc *MarketUseCase) GetMarket() ([]entities.Market, *entitiesDtos.ErrorResponse) {
 	markets, err := uc.repo.GetMarkets()
 	if err != nil {
@@ -94,8 +136,20 @@ func (uc *MarketUseCase) GetMarket() ([]entities.Market, *entitiesDtos.ErrorResp
 
 }
 
-func (uc *MarketUseCase) GetMarketByID(marketID string) (*entities.Market, *entitiesDtos.ErrorResponse) {
+func (uc *MarketUseCase) GetMarketByID(marketID string) ([]entities.Market, *entitiesDtos.ErrorResponse) {
 	market, errRes := uc.repo.GetMarketByID(marketID)
+	if errRes != nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to retrieve market: " + errRes.Message,
+		}
+	}
+
+	return market, nil
+}
+
+func (uc *MarketUseCase) GetMarketByProviderID(providerID string) ([]entities.Market, *entitiesDtos.ErrorResponse) {
+	market, errRes := uc.repo.GetMarketByProviderID(providerID)
 	if errRes != nil {
 		return nil, &entitiesDtos.ErrorResponse{
 			Code:    500,
