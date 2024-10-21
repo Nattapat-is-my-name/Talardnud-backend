@@ -119,7 +119,7 @@ func (h *MarketHandler) EditMarket(c *fiber.Ctx) error {
 // @Accept json
 // @Produce json
 // @Param id path string true "Market ID"
-// @Success 200 {object} entitiesDtos.MarketResponse
+// @Success 200 {object} entities.Market
 // @Router /markets/get/{id} [get]
 func (h *MarketHandler) GetMarketByID(c *fiber.Ctx) error {
 	marketID := c.Params("id")

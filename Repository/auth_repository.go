@@ -62,6 +62,7 @@ func generateToken(user entities.Vendor) (entities.LoginResponse, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":   user.ID,
 		"email": user.Email,
+		"role":  "vendor", // Add the role claim
 		"exp":   time.Now().Add(24 * time.Hour).Unix(),
 		"iat":   time.Now().Unix(),
 	})
@@ -107,24 +108,23 @@ func (repo *AuthRepository) IsUsernameAndEmailExists(username, email string) (bo
 	return false, nil
 }
 
-func (repo *AuthRepository) ProviderLogin(username, password string) (entities.MarketProvider, error) {
+func (repo *AuthRepository) ProviderLogin(username, password string) (*entities.MarketProvider, error) {
 	var provider entities.MarketProvider
 
 	// Find the provider by username
 	if err := repo.db.Where("username = ?", username).First(&provider).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return entities.MarketProvider{}, errors.New("provider not found")
+			return nil, errors.New("provider not found")
 		}
-		return entities.MarketProvider{}, err
+		return nil, err
 	}
 	// Check if the password matches
 	if !checkPasswordHash(password, provider.Password) {
-		return entities.MarketProvider{}, errors.New("invalid password")
+		return nil, errors.New("invalid password")
 	}
 
-	return provider, nil
+	return &provider, nil
 }
-
 func (repo *AuthRepository) ProviderRegister(provider *entities.MarketProvider) error {
 	if provider.Username == "" || provider.Email == "" {
 		return errors.New("username and Email are required")

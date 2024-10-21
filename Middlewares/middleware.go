@@ -32,11 +32,21 @@ func JWTAuthMiddleware(userRepo *Repository.UserRepository, providerRepo *Reposi
 		}
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-			userID := claims["sub"].(string)
-			email := claims["email"].(string)
-			role := claims["role"].(string)
+			userID, ok := claims["sub"].(string)
+			if !ok {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid user ID in token"})
+			}
 
-			var _ error
+			email, ok := claims["email"].(string)
+			if !ok {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid email in token"})
+			}
+
+			role, ok := claims["role"].(string)
+			if !ok {
+				return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid role in token"})
+			}
+
 			if role == "provider" {
 				// Check if the provider exists in the database
 				provider, err := providerRepo.GetProviderByID(userID)
@@ -62,13 +72,16 @@ func JWTAuthMiddleware(userRepo *Repository.UserRepository, providerRepo *Reposi
 			c.Locals("userID", userID)
 			c.Locals("email", email)
 			c.Locals("role", role)
-			c.Locals("exp", claims["exp"])
+			if exp, ok := claims["exp"].(float64); ok {
+				c.Locals("exp", int64(exp))
+			}
 			return c.Next()
 		}
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Invalid token"})
 	}
 }
 
+// ProviderAuthMiddleware remains unchanged
 func ProviderAuthMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		role := c.Locals("role")

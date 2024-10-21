@@ -866,7 +866,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/dtos.MarketResponse'
+            $ref: '#/definitions/entities.Market'
       summary: Get a market by ID
       tags:
       - Market

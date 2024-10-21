@@ -87,7 +87,7 @@ func (uc *AuthUseCase) ProviderLogin(username, password string) (dtos.ProviderLo
 	}
 
 	// Generate JWT token
-	tokenString, err := uc.generateProviderToken(&provider)
+	tokenString, err := uc.generateProviderToken(provider)
 	if err != nil {
 		return dtos.ProviderLoginResponse{}, err
 	}
@@ -96,6 +96,18 @@ func (uc *AuthUseCase) ProviderLogin(username, password string) (dtos.ProviderLo
 		AccessToken: tokenString,
 		ProviderID:  provider.ID,
 	}, nil
+}
+
+func (uc *AuthUseCase) generateProviderToken(provider *entities.MarketProvider) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["sub"] = provider.ID
+	claims["email"] = provider.Email
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	claims["role"] = "provider"
+	claims["iat"] = time.Now().Unix()
+
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 }
 
 func (uc *AuthUseCase) RegisterProvider(username, phone, email, password string) (entities.MarketProvider, *dtos.ErrorResponse) {
@@ -144,15 +156,4 @@ func (uc *AuthUseCase) RegisterProvider(username, phone, email, password string)
 	}
 
 	return response, nil
-}
-
-func (uc *AuthUseCase) generateProviderToken(provider *entities.MarketProvider) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	claims["sub"] = provider.ID
-	claims["username"] = provider.Username
-	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
-	claims["role"] = "provider"
-
-	return token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 }
