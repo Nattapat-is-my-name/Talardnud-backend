@@ -53,6 +53,18 @@ func (uc *PaymentUseCase) PromptPay(request entities2.Payment, paymentID string)
 	}, nil
 }
 
+func (uc *PaymentUseCase) GetPayment(paymentID string) (*entitiesDtos.BookingResponse, *entitiesDtos.ErrorResponse) {
+	payment, err := uc.repo.GetPayment(paymentID)
+	if err != nil {
+		log.Printf("Failed to get payment: %v", err)
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: fmt.Sprintf("Failed to get payment: %v", err),
+		}
+	}
+	return payment, nil
+}
+
 func (uc *PaymentUseCase) PaymentConfirmation(request *entities2.PaymentConfirmation) (*entities2.BillPayment, *entitiesDtos.ErrorResponse) {
 	// Get the OAuth token
 	oauthResp, err := uc.paymentService.GetOAuthToken()

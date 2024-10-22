@@ -160,6 +160,10 @@ func (uc *BookingUseCase) GetBooking(bookingID string) (*entities.Booking, error
 	return uc.repo.GetBooking(bookingID)
 }
 
+func (uc *BookingUseCase) GetBookingsByUser(userID string) ([]entities.Booking, error) {
+	return uc.repo.GetBookingsByUser(userID)
+}
+
 func (uc *BookingUseCase) handlePayment(paymentEntity entities.Payment, paymentID string) (entitiesDtos.PromptPayResult, error) {
 	promptPayResult, errResp := uc.PaymentUseCase.PromptPay(paymentEntity, paymentID)
 	if errResp != nil {

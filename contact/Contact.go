@@ -20,10 +20,12 @@ type IBooking interface {
 	GetBooking(bookingID string) (*entities.Booking, error)
 	UpdateBookingStatus(bookingID string, status entities.BookingStatus) (*entities.Booking, error)
 	IsSlotAvailable(bookingReq *entitiesDtos.BookingRequest) error
+	GetBookingsByUser(userID string) ([]entities.Booking, error)
 }
 
 type IPayment interface {
 	CreateTransaction(transaction *entities.Transaction) error
+	GetPayment(paymentID string) (*entitiesDtos.BookingResponse, error)
 	GetTransaction(ref1, ref2, ref3 string) (*entities.Transaction, error)
 	GetTransactionByID(transactionID string) (*entities.Transaction, error)
 	UpdatePayment(BookingID string, Status entities.PaymentStatus) (*entities.Payment, error)

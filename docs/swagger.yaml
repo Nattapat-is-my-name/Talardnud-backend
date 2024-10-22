@@ -459,7 +459,9 @@ definitions:
       status:
         $ref: '#/definitions/entities.PaymentStatus'
       transactions:
-        $ref: '#/definitions/entities.Transaction'
+        items:
+          $ref: '#/definitions/entities.Transaction'
+        type: array
       updated_at:
         type: string
     type: object
@@ -786,6 +788,37 @@ paths:
       summary: Get a booking
       tags:
       - bookings
+  /bookings/user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get bookings by user with the provided ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Booking'
+            type: array
+        "404":
+          description: Bookings not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get bookings by user
+      tags:
+      - bookings
   /markets/create:
     post:
       consumes:
@@ -891,6 +924,35 @@ paths:
       summary: Get a market by Provider ID
       tags:
       - Market
+  /payments/get/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get payment by the provided ID
+      parameters:
+      - description: Payment ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BookingResponse'
+        "404":
+          description: Payment not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get payment by ID
+      tags:
+      - payments
   /slots/{marketId}/create:
     post:
       consumes:

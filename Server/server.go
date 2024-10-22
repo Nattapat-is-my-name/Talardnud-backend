@@ -59,6 +59,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	bookingGroup := v1.Group("/Bookings", authMiddleware)
 	bookingGroup.Post("/create", allHandlers.BookingHandler.CreateBooking)
 	bookingGroup.Get("/get/:id", allHandlers.BookingHandler.GetBooking)
+	bookingGroup.Get("/user/:id", allHandlers.BookingHandler.GetBookingsByUser)
 	//bookingGroup.Delete("/cancel", allHandlers.BookingHandler.CancelBooking)
 
 	slotGroup := v1.Group("/Slots")
@@ -70,7 +71,8 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	slotGroup.Get("/markets/:marketID/date/:date", allHandlers.SlotHandler.GetSlotByDate, providerMiddleware)
 	slotGroup.Delete("/delete/:id/zone/:zoneID/date/:date", allHandlers.SlotHandler.DeleteSlotByDateAndZone, providerMiddleware)
 
-	//paymentGroup := v1.Group("/Payments", authMiddleware)x
+	paymentGroup := v1.Group("/Payments", authMiddleware)
+	paymentGroup.Get("/get/:id", allHandlers.PaymentHandler.GetPayment)
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)
 
 	ScbResponseGroup := v1.Group("/Scb")

@@ -303,6 +303,53 @@ const docTemplate = `{
                 }
             }
         },
+        "/bookings/user/{id}": {
+            "get": {
+                "description": "Get bookings by user with the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Get bookings by user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Booking"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bookings not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/markets/create": {
             "post": {
                 "description": "Create a new market",
@@ -459,6 +506,50 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/dtos.MarketResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/payments/get/{id}": {
+            "get": {
+                "description": "Get payment by the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payments"
+                ],
+                "summary": "Get payment by ID",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Payment ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Payment not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }
@@ -1488,7 +1579,10 @@ const docTemplate = `{
                     "$ref": "#/definitions/entities.PaymentStatus"
                 },
                 "transactions": {
-                    "$ref": "#/definitions/entities.Transaction"
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.Transaction"
+                    }
                 },
                 "updated_at": {
                     "type": "string"

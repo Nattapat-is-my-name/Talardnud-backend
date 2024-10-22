@@ -4,6 +4,7 @@ import (
 	"errors"
 	"gorm.io/gorm"
 	entities "tln-backend/Entities"
+	entitiesDtos "tln-backend/Entities/dtos"
 )
 
 type PaymentRepository struct {
@@ -19,6 +20,58 @@ func (r *PaymentRepository) CreateTransaction(transaction *entities.Transaction)
 		return err
 	}
 	return nil
+}
+
+func (r *PaymentRepository) GetPayment(paymentID string) (*entitiesDtos.BookingResponse, error) {
+	var (
+		payment entities.Payment
+		booking entities.Booking
+		vendor  entities.Vendor
+	)
+
+	// Get payment with transactions
+	if err := r.db.Preload("Transactions").Where("ID = ?", paymentID).First(&payment).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("payment not found")
+		}
+		return nil, err
+	}
+
+	// Get associated booking
+	if err := r.db.Where("ID = ?", payment.BookingID).First(&booking).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("booking not found")
+		}
+		return nil, err
+	}
+
+	// Get associated vendor
+	if err := r.db.Where("ID = ?", booking.VendorID).First(&vendor).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("vendor not found")
+		}
+		return nil, err
+	}
+
+	// Ensure there are transactions before accessing
+	if len(payment.Transactions) == 0 {
+		return nil, errors.New("no transactions found for payment")
+	}
+
+	response := &entitiesDtos.BookingResponse{
+		ID:            payment.ID,
+		SlotID:        booking.SlotID,
+		VendorID:      vendor.ID,
+		TransactionID: payment.Transactions[0].ID,
+		BookingDate:   payment.PaymentDate,
+		Price:         payment.Price,
+		Status:        entities.BookingStatus(payment.Status),
+		Method:        payment.Method,
+		Image:         payment.Transactions[0].Image,
+		ExpiresAt:     payment.ExpiresAt,
+	}
+
+	return response, nil
 }
 
 func (r *PaymentRepository) GetTransaction(ref1, ref2, ref3 string) (*entities.Transaction, error) {

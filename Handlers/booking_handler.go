@@ -53,6 +53,35 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	})
 }
 
+// GetBookingsByUser godoc
+// @Summary Get bookings by user
+// @Description Get bookings by user with the provided ID
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Success 200 {object} []entities.Booking
+// @Failure 404 {object} string "Bookings not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/user/{id} [get]
+func (h *BookingHandler) GetBookingsByUser(c *fiber.Ctx) error {
+	userId := c.Params("id")
+	bookings, errResponse := h.useCase.GetBookingsByUser(userId)
+	if errResponse != nil {
+		log.Printf("Failed to get bookings for user with ID %s: %v", userId, errResponse) // Log the error details
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to get bookings",
+			"details": errResponse,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Bookings retrieved successfully",
+		"data":    bookings,
+	})
+}
+
 // CancelBooking godoc
 // @Summary Cancel a booking
 // @Description Cancel a booking with the provided data

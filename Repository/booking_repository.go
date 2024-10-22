@@ -29,7 +29,37 @@ func (repo *BookingRepository) GetBooking(bookingID string) (*entities.Booking, 
 		return nil, result.Error
 	}
 
+	result = repo.db.Preload("Payment").Where("id = ?", bookingID).First(&booking)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
 	return &booking, nil
+}
+
+func (repo *BookingRepository) GetBookingsByUser(userID string) ([]entities.Booking, error) {
+	var bookings []entities.Booking
+
+	result := repo.db.Where("vendor_id = ?", userID).Find(&bookings)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	//create preload for slot entitle and market
+	result = repo.db.Preload("Slot").Where("slot_id = ?", userID).Find(&bookings)
+	if result.Error != nil {
+		return nil, result.Error
+
+	}
+
+	//create preload for payment
+	result = repo.db.Preload("Payment").Where("vendor_id = ?", userID).Find(&bookings)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return bookings, nil
 }
 
 func (repo *BookingRepository) UpdateBookingStatus(bookingID string, status entities.BookingStatus) (*entities.Booking, error) {
