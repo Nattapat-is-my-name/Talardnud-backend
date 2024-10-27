@@ -50,9 +50,16 @@ func (r *UserRepository) GetUserByID(id string) (*entitiesDtos.GetUserResponse, 
 	return &getUserResponse, nil
 }
 
-func (r *UserRepository) UpdateUser(user *entities.Vendor) error {
-	//TODO implement me
-	panic("implement me")
+func (r *UserRepository) UpdateUser(userID string) (*entitiesDtos.GetUserResponse, error) {
+	var user entities.Vendor
+	result := r.db.Where("id = ?", userID).First(&user)
+	if result.Error != nil {
+		fmt.Println("no user found with ID: ", userID)
+		return nil, result.Error
+	}
+
+	return nil, errors.New("not implemented")
+
 }
 
 func (r *UserRepository) DeleteUser(id string) error {

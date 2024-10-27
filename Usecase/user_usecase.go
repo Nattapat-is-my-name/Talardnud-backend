@@ -31,11 +31,14 @@ func (uc *UserUseCase) GetUserByID(id string) (*entitiesDtos.GetUserResponse, er
 	return uc.repo.GetUserByID(id)
 }
 
-func (uc *UserUseCase) UpdateUser(user *entities.Vendor) error {
-	return uc.repo.UpdateUser(user)
-
-}
-
+//	func (uc *UserUseCase) UpdateUser(userID string) error {
+//		err := uc.repo.UpdateUser(userID)
+//		if err != nil {
+//			// Log the error or handle it as necessary
+//			return fmt.Errorf("use case error: %w", err)
+//		}
+//		return nil
+//	}
 func (uc *UserUseCase) DeleteUser(id string) error {
 
 	err := uc.repo.DeleteUser(id)

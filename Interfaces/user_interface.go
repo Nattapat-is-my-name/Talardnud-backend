@@ -13,7 +13,7 @@ type IUserRepository interface {
 	GetUserByID(id string) (*entitiesDtos.GetUserResponse, error)
 
 	// UpdateUser updates the details of an existing user
-	UpdateUser(user *entities.Vendor) error
+	UpdateUser(userID string) (*entitiesDtos.GetUserResponse, error)
 
 	// DeleteUser removes a user from the repository
 	DeleteUser(id string) error

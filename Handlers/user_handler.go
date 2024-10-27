@@ -16,34 +16,32 @@ func NewUserHandler(uc *Usecase.UserUseCase) *UserHandler {
 	return &UserHandler{useCase: uc}
 }
 
-//// CreateUser godoc
-//// @Summary Create a user
-//// @Description Create a new user with the provided data
-//// @Tags users
-//// @Accept  json
-//// @Produce  json
-//// @Param user body entities.RegisterRequest true "User data"
-//// @Success 201 {object} dtos.RegisterRequest
-//// @Failure 400 {object} string "Invalid input"
-//// @Failure 409 {object} string "Username already exists"
-//// @Failure 500 {object} string "Internal server error"
-//// @Router /users [post]
-//func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-//	var user dtos.RegisterRequest
-//	if err := c.BodyParser(&user); err != nil {
-//		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+// UpdateUser godoc
+// @Summary Update a user
+// @Description Update a user with the provided ID
+// @Tags users
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Success 200 {object} string "User updated successfully"
+// @Failure 500 {object} string "Failed to update user"
+// @Router /users/{id} [patch]
+//func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
+//
+//	userIdToUpdate := c.Params("id")
+//
+//	err := h.useCase.UpdateUser(userIdToUpdate)
+//	if err != nil {
+//		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+//			"error":   "Failed to update user",
+//			"message": err.Error(),
+//		})
 //	}
 //
-//	if err := h.useCase.CreateUser(&user); err != nil {
-//		if err.Error() == "username already exists" {
-//			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "Username already exists"})
-//		}
-//		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Internal server error"})
-//	}
-//
-//	fmt.Println("User created: ", user)
-//
-//	return c.Status(fiber.StatusCreated).JSON(user)
+//	return c.JSON(fiber.Map{
+//		"message": "User updated successfully",
+//		"user_id": userIdToUpdate,
+//	})
 //}
 
 // DeleteUser godoc

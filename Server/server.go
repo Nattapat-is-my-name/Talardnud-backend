@@ -38,6 +38,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	userGroup := v1.Group("/Users", authMiddleware)
 	userGroup.Delete("/:id", allHandlers.UserHandler.DeleteUser)
 	userGroup.Get("/:id", allHandlers.UserHandler.GetUserByID)
+	//userGroup.Patch("/:id", allHandlers.UserHandler.UpdateUser)
 
 	providerGroup := v1.Group("/Providers", authMiddleware, providerMiddleware)
 
@@ -74,6 +75,10 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	paymentGroup := v1.Group("/Payments", authMiddleware)
 	paymentGroup.Get("/get/:id", allHandlers.PaymentHandler.GetPayment)
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)
+
+	dashboardGroup := v1.Group("/Dashboard")
+	dashboardGroup.Get("/", allHandlers.DashboardHandler.GetDashboardData) // Get all markets
+	dashboardGroup.Get("/get/:id", allHandlers.DashboardHandler.GetSingleMarketStats)
 
 	ScbResponseGroup := v1.Group("/Scb")
 	ScbResponseGroup.Post("/confirm", allHandlers.PaymentHandler.ScbConfirmation)

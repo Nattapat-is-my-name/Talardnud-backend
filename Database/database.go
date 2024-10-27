@@ -27,7 +27,10 @@ func NewDB() (*gorm.DB, error) {
 
 	if err := db.AutoMigrate(
 		&entities.Vendor{},
+		&entities.MarketDashboardStats{},
 		&entities.LoginRequest{},
+
+
 		&dtos.RegisterRequest{},
 		&entities.MarketProvider{},
 		&entities.Booking{},
