@@ -77,7 +77,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	}
 
 	// Register the user and capture the detailed error response
-	res, errResponse := h.useCase.Register(req.Username, req.Password, req.Email, req.PhoneNumber)
+	res, errResponse := h.useCase.Register(req.Username, req.Password, req.Email, req.PhoneNumber, req.Firstname, req.Lastname)
 	if errResponse != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error":   "Failed to register user",

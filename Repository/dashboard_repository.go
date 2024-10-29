@@ -351,20 +351,38 @@ func (repo *DashboardRepository) GetDebugInfo(marketID string) map[string]interf
 
 	return debug
 }
-
-// GetWeeklyStats gets stats for the last 7 days
 func (repo *DashboardRepository) GetWeeklyStats(marketID string) ([]entities.MarketDashboardStats, error) {
-	endDate := time.Now().Truncate(24 * time.Hour)
-	startDate := endDate.AddDate(0, 0, -7)
+	// Load Bangkok time zone
+	bangkokLocation, err := time.LoadLocation("Asia/Bangkok")
+	if err != nil {
+		return nil, fmt.Errorf("failed to load Bangkok location: %v", err)
+	}
 
+	// Get today's date at midnight in Bangkok time
+	now := time.Now().In(bangkokLocation)
+	today := time.Date(now.Year(), now.Month(), now.Day()-2, 0, 0, 0, 0, bangkokLocation)
+	weekday := today.Weekday()
+
+	// Calculate the start of the current calendar week (Monday) in Bangkok time
+	offsetToMonday := int(time.Monday - weekday)
+	if offsetToMonday > 0 {
+		offsetToMonday = -6 // Adjust to previous Monday if today is Sunday
+	}
+	startDate := today.AddDate(0, 0, offsetToMonday)
+	endDate := today // Set endDate as today to include data up to the current day of the week
+
+	// Log for debugging
+	fmt.Printf("Today is: %s\nWeekday is: %s\n", today, weekday)
+	fmt.Printf("Querying for market %s between %s (Monday) and %s (Today)\n", marketID, startDate, endDate)
+
+	// Query for stats within the date range for the specified market
 	var stats []entities.MarketDashboardStats
-	err := repo.db.Where("market_id = ? AND date BETWEEN ? AND ?",
-		marketID, startDate, endDate).
-		Order("date ASC").
+	err = repo.db.Where("market_id = ? AND date BETWEEN ? AND ?", marketID, startDate, endDate).
+		Order("date ASC"). // Order by date in ascending order
 		Find(&stats).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get weekly stats: %v", err)
+		return nil, fmt.Errorf("failed to get weekly stats for market %s: %v", marketID, err)
 	}
 
 	return stats, nil

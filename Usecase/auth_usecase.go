@@ -29,7 +29,7 @@ func (uc *AuthUseCase) Login(usernameOrEmail, password string) (entities.LoginRe
 }
 
 // Register handles user registration by hashing the password and saving the user data
-func (uc *AuthUseCase) Register(username, password, email, phone string) (dtos.RegisterResponse, *dtos.ErrorResponse) {
+func (uc *AuthUseCase) Register(username, password, email, phone, firstname, lastname string) (dtos.RegisterResponse, *dtos.ErrorResponse) {
 	// Check if the username and email already exist
 	exists, errResponse := uc.repo.IsUsernameAndEmailExists(username, email)
 	if errResponse != nil {
@@ -53,11 +53,13 @@ func (uc *AuthUseCase) Register(username, password, email, phone string) (dtos.R
 
 	// Create a new vendor
 	newVendor := entities.Vendor{
-		ID:       uuid.NewString(),
-		Username: username,
-		Email:    email,
-		Password: hashedPassword,
-		Phone:    phone,
+		ID:        uuid.NewString(),
+		Username:  username,
+		Password:  hashedPassword,
+		Email:     email,
+		FirstName: firstname,
+		LastName:  lastname,
+		Phone:     phone,
 	}
 
 	// Register the new vendor
@@ -70,10 +72,12 @@ func (uc *AuthUseCase) Register(username, password, email, phone string) (dtos.R
 
 	// Convert to RegisterResponse
 	response := dtos.RegisterResponse{
-		ID:       newVendor.ID,
-		Username: newVendor.Username,
-		Email:    newVendor.Email,
-		Phone:    newVendor.Phone,
+		ID:        newVendor.ID,
+		Username:  newVendor.Username,
+		Email:     newVendor.Email,
+		Phone:     newVendor.Phone,
+		Firstname: newVendor.FirstName,
+		Lastname:  newVendor.LastName,
 	}
 
 	return response, nil

@@ -13,21 +13,6 @@ func NewDashboardHandler(useCase *Usecase.DashboardUseCase) *DashboardHandler {
 	return &DashboardHandler{useCase: useCase}
 }
 
-func (h *DashboardHandler) GetDashboardData(c *fiber.Ctx) error {
-	data, err := h.useCase.GetDashboardData("") // Empty marketID to get all markets
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   data,
-	})
-}
-
 // Add a new handler for single market if needed
 func (h *DashboardHandler) GetSingleMarketStats(c *fiber.Ctx) error {
 	marketID := c.Params("id")
@@ -39,6 +24,40 @@ func (h *DashboardHandler) GetSingleMarketStats(c *fiber.Ctx) error {
 	}
 
 	stats, err := h.useCase.GetSingleMarketStats(marketID)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"status":  "error",
+			"message": err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   stats,
+	})
+}
+
+// GetWeeklyStats  godoc
+// @Summary Get weekly stats for a market
+// @Description Get weekly stats for a market with the market ID
+// @Tags dashboard
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Market ID"
+// @Success 200 {object} entities.DashboardResponse
+// @Failure 400 {object} string "Invalid input"
+// @Failure 500 {object} string "Internal server error"
+// @Router /dashboard/weekly/{id} [get]
+func (h *DashboardHandler) GetWeeklyStats(c *fiber.Ctx) error {
+	marketID := c.Params("id")
+	if marketID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"status":  "error",
+			"message": "Market ID is required",
+		})
+	}
+
+	stats, err := h.useCase.GetWeeklyData(marketID)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"status":  "error",

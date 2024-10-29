@@ -220,14 +220,23 @@ definitions:
       email:
         description: Required, must be a valid email format
         type: string
+      firstname:
+        description: Required, min 3, max 50 characters
+        maxLength: 50
+        minLength: 3
+        type: string
+      lastname:
+        description: Required, min 3, max 50 characters
+        maxLength: 50
+        minLength: 3
+        type: string
       password:
         description: Required, min 8 characters for password
         minLength: 8
         type: string
       phone_number:
         description: Required, adjust based on the expected format=
-        maxLength: 15
-        minLength: 10
+        maxLength: 10
         type: string
       username:
         description: Required, min 3, max 50 characters
@@ -236,6 +245,8 @@ definitions:
         type: string
     required:
     - email
+    - firstname
+    - lastname
     - password
     - phone_number
     - username
@@ -244,7 +255,11 @@ definitions:
     properties:
       email:
         type: string
+      firstname:
+        type: string
       id:
+        type: string
+      lastname:
         type: string
       phone:
         type: string
@@ -327,11 +342,13 @@ definitions:
     - pending
     - cancelled
     - completed
+    - refund
     type: string
     x-enum-varnames:
     - StatusPending
     - StatusCancelled
     - StatusCompleted
+    - StatusRefunded
   entities.Category:
     enum:
     - clothes
@@ -350,6 +367,14 @@ definitions:
     - CategoryElectronics
     - CategoryServices
     - CategoryOther
+  entities.DashboardResponse:
+    properties:
+      stats:
+        description: Changed to slice
+        items:
+          $ref: '#/definitions/entities.MarketDashboardStats'
+        type: array
+    type: object
   entities.LoginRequest:
     properties:
       password:
@@ -408,6 +433,35 @@ definitions:
         type: array
       updated_at:
         type: string
+    type: object
+  entities.MarketDashboardStats:
+    properties:
+      booking_growth:
+        type: number
+      created_at:
+        type: string
+      date:
+        type: string
+      market_id:
+        type: string
+      occupancy_rate:
+        type: number
+      revenue_growth:
+        type: number
+      top_zone:
+        type: string
+      top_zone_occupancy:
+        type: number
+      total_bookings:
+        type: integer
+      total_cancel_bookings:
+        type: integer
+      total_confirm_bookings:
+        type: integer
+      total_pending_bookings:
+        type: integer
+      total_revenue:
+        type: number
     type: object
   entities.MarketProvider:
     properties:
@@ -819,6 +873,35 @@ paths:
       summary: Get bookings by user
       tags:
       - bookings
+  /dashboard/weekly/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get weekly stats for a market with the market ID
+      parameters:
+      - description: Market ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entities.DashboardResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get weekly stats for a market
+      tags:
+      - dashboard
   /markets/create:
     post:
       consumes:

@@ -350,6 +350,50 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard/weekly/{id}": {
+            "get": {
+                "description": "Get weekly stats for a market with the market ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Get weekly stats for a market",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entities.DashboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/markets/create": {
             "post": {
                 "description": "Create a new market",
@@ -1229,6 +1273,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
+                "firstname",
+                "lastname",
                 "password",
                 "phone_number",
                 "username"
@@ -1238,6 +1284,18 @@ const docTemplate = `{
                     "description": "Required, must be a valid email format",
                     "type": "string"
                 },
+                "firstname": {
+                    "description": "Required, min 3, max 50 characters",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                },
+                "lastname": {
+                    "description": "Required, min 3, max 50 characters",
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
+                },
                 "password": {
                     "description": "Required, min 8 characters for password",
                     "type": "string",
@@ -1246,8 +1304,7 @@ const docTemplate = `{
                 "phone_number": {
                     "description": "Required, adjust based on the expected format=",
                     "type": "string",
-                    "maxLength": 15,
-                    "minLength": 10
+                    "maxLength": 10
                 },
                 "username": {
                     "description": "Required, min 3, max 50 characters",
@@ -1263,7 +1320,13 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "firstname": {
+                    "type": "string"
+                },
                 "id": {
+                    "type": "string"
+                },
+                "lastname": {
                     "type": "string"
                 },
                 "phone": {
@@ -1387,12 +1450,14 @@ const docTemplate = `{
             "enum": [
                 "pending",
                 "cancelled",
-                "completed"
+                "completed",
+                "refund"
             ],
             "x-enum-varnames": [
                 "StatusPending",
                 "StatusCancelled",
-                "StatusCompleted"
+                "StatusCompleted",
+                "StatusRefunded"
             ]
         },
         "entities.Category": {
@@ -1415,6 +1480,18 @@ const docTemplate = `{
                 "CategoryServices",
                 "CategoryOther"
             ]
+        },
+        "entities.DashboardResponse": {
+            "type": "object",
+            "properties": {
+                "stats": {
+                    "description": "Changed to slice",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entities.MarketDashboardStats"
+                    }
+                }
+            }
         },
         "entities.LoginRequest": {
             "type": "object",
@@ -1501,6 +1578,50 @@ const docTemplate = `{
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "entities.MarketDashboardStats": {
+            "type": "object",
+            "properties": {
+                "booking_growth": {
+                    "type": "number"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "market_id": {
+                    "type": "string"
+                },
+                "occupancy_rate": {
+                    "type": "number"
+                },
+                "revenue_growth": {
+                    "type": "number"
+                },
+                "top_zone": {
+                    "type": "string"
+                },
+                "top_zone_occupancy": {
+                    "type": "number"
+                },
+                "total_bookings": {
+                    "type": "integer"
+                },
+                "total_cancel_bookings": {
+                    "type": "integer"
+                },
+                "total_confirm_bookings": {
+                    "type": "integer"
+                },
+                "total_pending_bookings": {
+                    "type": "integer"
+                },
+                "total_revenue": {
+                    "type": "number"
                 }
             }
         },

@@ -19,25 +19,6 @@ func NewDashboardUseCase(repo *Repository.DashboardRepository, service *Services
 		service: service,
 	}
 }
-
-func (uc *DashboardUseCase) GetDashboardData(marketID string) (*entities.DashboardResponse, error) {
-	// First ensure stats are updated for all markets
-	err := uc.updateAllMarketsStats()
-	if err != nil {
-		return nil, fmt.Errorf("failed to update market stats: %v", err)
-	}
-
-	// Get stats for all markets
-	stats, err := uc.repo.GetAllMarketsDashboardStats()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dashboard data: %v", err)
-	}
-
-	return &entities.DashboardResponse{
-		Stats: stats, // Now this will work because Stats is a slice
-	}, nil
-}
-
 func (uc *DashboardUseCase) updateAllMarketsStats() error {
 	// Get all market IDs
 	var marketIDs []string
@@ -58,25 +39,35 @@ func (uc *DashboardUseCase) updateAllMarketsStats() error {
 	return nil
 }
 
+func (uc *DashboardUseCase) GetWeeklyData(marketID string) (*entities.DashboardResponse, error) {
+	// Update stats for the specific market before fetching weekly data
+	err := uc.repo.UpdateDashboardStats(marketID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update market stats: %v", err)
+	}
+
+	// Fetch weekly stats for the given market ID
+	weeklyStats, err := uc.repo.GetWeeklyStats(marketID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get weekly dashboard data: %v", err)
+	}
+
+	return &entities.DashboardResponse{
+		Stats: weeklyStats, // Assigns the retrieved weekly stats directly
+	}, nil
+}
+
 // If you need to get stats for a single market, add this method
-func (uc *DashboardUseCase) GetSingleMarketStats(marketID string) (*entities.MarketDashboardStats, error) {
+func (uc *DashboardUseCase) GetSingleMarketStats(marketID string) (*entities.DashboardResponse, error) {
 	// Update stats for this market
 	if err := uc.repo.UpdateDashboardStats(marketID); err != nil {
 		return nil, fmt.Errorf("failed to update market stats: %v", err)
 	}
 
-	// Get all stats
-	allStats, err := uc.repo.GetAllMarketsDashboardStats()
+	Stats, err := uc.repo.GetDashboardData(marketID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get dashboard data: %v", err)
 	}
 
-	// Find the specific market's stats
-	for _, stats := range allStats {
-		if stats.MarketID == marketID {
-			return &stats, nil
-		}
-	}
-
-	return nil, fmt.Errorf("market not found")
+	return Stats, nil
 }

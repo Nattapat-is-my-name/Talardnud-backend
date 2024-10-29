@@ -26,6 +26,7 @@ const (
 	StatusPending   BookingStatus = "pending"
 	StatusCancelled BookingStatus = "cancelled"
 	StatusCompleted BookingStatus = "completed"
+	StatusRefunded  BookingStatus = "refund"
 )
 
 type Method string
