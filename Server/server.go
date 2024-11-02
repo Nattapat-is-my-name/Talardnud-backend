@@ -1,14 +1,15 @@
 package Server
 
 import (
+	"tln-backend/Handlers"
+	middleware "tln-backend/Middlewares"
+	"tln-backend/Repository"
+
 	swagger "github.com/arsmn/fiber-swagger/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"tln-backend/Handlers"
-	middleware "tln-backend/Middlewares"
-	"tln-backend/Repository"
 )
 
 type Server struct {
@@ -57,11 +58,11 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	authGroup.Post("/provider/login", allHandlers.AuthHandler.ProviderLogin)
 	authGroup.Post("/provider/register", allHandlers.AuthHandler.RegisterProvider)
 
-	bookingGroup := v1.Group("/Bookings", authMiddleware)
+	bookingGroup := v1.Group("/Bookings")
 	bookingGroup.Post("/create", allHandlers.BookingHandler.CreateBooking)
 	bookingGroup.Get("/get/:id", allHandlers.BookingHandler.GetBooking)
 	bookingGroup.Get("/user/:id", allHandlers.BookingHandler.GetBookingsByUser)
-	//bookingGroup.Delete("/cancel", allHandlers.BookingHandler.CancelBooking)
+	bookingGroup.Patch("/cancel", allHandlers.BookingHandler.CancelBooking)
 
 	slotGroup := v1.Group("/Slots")
 	slotGroup.Post("/:marketId/create", allHandlers.SlotHandler.CreateOrUpdateLayout, providerMiddleware)

@@ -53,6 +53,33 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	})
 }
 
+// CancelBooking godoc
+func (h *BookingHandler) CancelBooking(c *fiber.Ctx) error {
+	var req entitiesDtos.CancelBookingRequest
+	if err := c.BodyParser(&req); err != nil {
+		log.Printf("Failed to parse request body: %v", err) // Log the detailed error
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error":   "Invalid request body",
+			"details": err.Error(),
+		})
+	}
+
+	booking, errResponse := h.useCase.CancelBooking(&req)
+	if errResponse != nil {
+		log.Printf("Failed to cancel booking: %v", errResponse) // Log the error details
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to cancel booking",
+			"details": errResponse,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Booking cancelled successfully",
+		"data":    booking,
+	})
+}
+
 // GetBookingsByUser godoc
 // @Summary Get bookings by user
 // @Description Get bookings by user with the provided ID

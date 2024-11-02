@@ -29,4 +29,5 @@ const (
 	TransactionPending   TransactionStatus = "pending"
 	TransactionCompleted TransactionStatus = "completed"
 	TransactionFailed    TransactionStatus = "failed"
+	TransactionRefunded  TransactionStatus = "refund"
 )

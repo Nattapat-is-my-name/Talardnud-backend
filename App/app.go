@@ -76,7 +76,7 @@ func InitializeHandlers(db *gorm.DB) (*Handlers.AllHandlers, *Repository.UserRep
 
 	bookingRepo := Repository.NewBookingRepository(db)
 	bookingService := Services.NewBookingService(bookingRepo, paymentRepo, slotUseCase)
-	bookingUseCase := Usecase.NewBookingUseCase(bookingRepo, paymentRepo, paymentUseCase, bookingService)
+	bookingUseCase := Usecase.NewBookingUseCase(bookingRepo, paymentRepo, paymentUseCase, bookingService, slotUseCase)
 	bookingHandler := Handlers.NewBookingHandler(bookingUseCase)
 
 	dashboardRep := Repository.NewDashboardRepository(db)

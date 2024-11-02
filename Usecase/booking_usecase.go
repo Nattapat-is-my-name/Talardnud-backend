@@ -17,14 +17,16 @@ type BookingUseCase struct {
 	payment        contact.IPayment
 	PaymentUseCase *PaymentUseCase
 	bookingService *Services.BookingService
+	slotUseCase    contact.ISlotUseCase
 }
 
-func NewBookingUseCase(repo contact.IBooking, payment contact.IPayment, paymentUseCase *PaymentUseCase, bookingService *Services.BookingService) *BookingUseCase {
+func NewBookingUseCase(repo contact.IBooking, payment contact.IPayment, paymentUseCase *PaymentUseCase, bookingService *Services.BookingService, slotUseCase contact.ISlotUseCase) *BookingUseCase {
 	return &BookingUseCase{
 		repo:           repo,
 		payment:        payment,
 		PaymentUseCase: paymentUseCase,
 		bookingService: bookingService,
+		slotUseCase:    slotUseCase,
 	}
 }
 
@@ -198,75 +200,164 @@ func validateBooking(booking *entitiesDtos.BookingRequest) error {
 	return nil
 }
 
-// CancelBooking cancels an existing booking based on the provided request.
-//func (uc *BookingUseCase) CancelBooking(cancelBookingReq *entitiesDtos.CancelBookingRequest) (*entitiesDtos.BookingResponse, *entitiesDtos.ErrorResponse) {
-//	// Validate the cancel booking request
-//	if err := validateCancelBooking(cancelBookingReq); err != nil {
-//		log.Printf("Validation failed: %v", err)
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    400,
-//			Message: "Invalid cancel booking request: " + err.Error(),
-//		}
-//	}
-//
-//	// Get the booking entity based on BookingID
-//	bookingEntity, err := uc.repo.GetBooking(cancelBookingReq.BookingID)
-//	if err != nil {
-//		log.Printf("Error getting booking with ID %s: %v", cancelBookingReq.BookingID, err)
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    500,
-//			Message: "Failed to get booking: " + err.Error(),
-//		}
-//	}
-//
-//	// Check if the booking is already cancelled or completed
-//	if bookingEntity.Status == "CANCELLED" || bookingEntity.Status == "COMPLETED" {
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    409,
-//			Message: fmt.Sprintf("Booking with ID %s is already %s", cancelBookingReq.BookingID, bookingEntity.Status),
-//		}
-//	}
-//
-//	// Update the booking status to "cancelled"
-//	if err := uc.repo.UpdateBookingStatus(cancelBookingReq.BookingID, "cancelled"); err != nil {
-//		log.Printf("Error updating booking status for ID %s: %v", cancelBookingReq.BookingID, err)
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    500,
-//			Message: "Failed to update booking status: " + err.Error(),
-//		}
-//	}
-//
-//	// Update the payment status to "cancelled"
-//	paymentRes, err := uc.payment.UpdatePayment(cancelBookingReq.BookingID, "CANCELLED")
-//	if err != nil {
-//		log.Printf("Error updating payment status for booking ID %s: %v", cancelBookingReq.BookingID, err)
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    500,
-//			Message: "Failed to update payment status: " + err.Error(),
-//		}
-//	}
-//
-//	//update transaction status to "cancelled"
-//	_, err = uc.payment.UpdateTransaction(paymentRes.ID, "cancelled")
-//	if err != nil {
-//		log.Printf("Error updating transaction status for payment ID %s: %v", paymentRes.ID, err)
-//		return nil, &entitiesDtos.ErrorResponse{
-//			Code:    500,
-//			Message: "Failed to update transaction status: " + err.Error(),
-//		}
-//	}
-//
-//	// Create a response object with updated booking data
-//	bookingResponse := &entitiesDtos.BookingResponse{
-//		ID:          bookingEntity.ID,
-//		SlotID:      bookingEntity.SlotID,
-//		VendorID:    bookingEntity.VendorID,
-//		BookingDate: bookingEntity.BookingDate,
-//		StartDate:   bookingEntity.StartDate,
-//		EndDate:     bookingEntity.EndDate,
-//		Status:      "CANCELLED",
-//	}
-//
-//	log.Printf("Successfully cancelled booking with ID %s", cancelBookingReq.BookingID)
-//	return bookingResponse, nil
-//}
+// CancelBooking cancels an existing booking based on the provided request.//
+
+func (uc *BookingUseCase) CancelBooking(cancelBookingReq *entitiesDtos.CancelBookingRequest) (*entitiesDtos.BookingResponse, *entitiesDtos.ErrorResponse) {
+	// Validate the cancel booking request
+	if err := validateCancelBooking(cancelBookingReq); err != nil {
+		log.Printf("Validation failed: %v", err)
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    400,
+			Message: "Invalid cancel booking request: " + err.Error(),
+		}
+	}
+
+	// Get the booking entity based on BookingID
+	bookingEntity, err := uc.repo.GetBooking(cancelBookingReq.BookingID)
+	if err != nil {
+		log.Printf("Error getting booking with ID %s: %v", cancelBookingReq.BookingID, err)
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Failed to get booking: " + err.Error(),
+		}
+	}
+
+	// Validate that booking exists and has required fields
+	if bookingEntity == nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Booking not found",
+		}
+	}
+
+	if bookingEntity.Payment == nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Booking payment information not found",
+		}
+	}
+
+	// Get payment by booking id
+	paymentEntity, err := uc.payment.GetPayment(bookingEntity.Payment.ID)
+	if err != nil {
+		log.Printf("Error getting payment with ID %s: %v", bookingEntity.Payment.ID, err)
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to get payment: " + err.Error(),
+		}
+	}
+
+	if paymentEntity == nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Payment not found",
+		}
+	}
+
+	// Get transaction by payment id
+	transactionEntity, err := uc.payment.GetTransactionByID(paymentEntity.TransactionID)
+	if err != nil {
+		log.Printf("Error getting transaction with ID %s: %v", paymentEntity.TransactionID, err)
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Failed to get transaction: " + err.Error(),
+		}
+	}
+
+	if transactionEntity == nil {
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    404,
+			Message: "Transaction not found",
+		}
+	}
+
+	// Check if slot use case is properly initialized
+	if uc.slotUseCase == nil {
+		log.Printf("Error: slotUseCase is nil")
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    500,
+			Message: "Internal server error: slot service not initialized",
+		}
+	}
+
+	switch transactionEntity.Status {
+	case "completed":
+		// Update transaction status
+		_, err = uc.payment.UpdateTransaction(transactionEntity.ID, entities.TransactionRefunded)
+		if err != nil {
+			log.Printf("Error updating transaction status for ID %s: %v", transactionEntity.ID, err)
+			return nil, &entitiesDtos.ErrorResponse{
+				Code:    500,
+				Message: "Failed to update transaction status: " + err.Error(),
+			}
+		}
+
+		// Update booking status
+		_, err = uc.repo.UpdateBookingStatus(cancelBookingReq.BookingID, entities.StatusRefunded)
+		if err != nil {
+			log.Printf("Error updating booking status for ID %s: %v", cancelBookingReq.BookingID, err)
+			return nil, &entitiesDtos.ErrorResponse{
+				Code:    500,
+				Message: "Failed to update booking status: " + err.Error(),
+			}
+		}
+
+		// Update payment status
+		_, err = uc.payment.UpdatePayment(paymentEntity.ID, entities.PaymentRefunded)
+		if err != nil {
+			log.Printf("Error updating payment status for ID %s: %v", paymentEntity.ID, err)
+			return nil, &entitiesDtos.ErrorResponse{
+				Code:    500,
+				Message: "Failed to update payment status: " + err.Error(),
+			}
+		}
+
+		// Update slot status to available
+		_, err = uc.slotUseCase.UpdateSlotStatus(bookingEntity.SlotID, entities.StatusAvailable)
+		if err != nil {
+			// Log the error but don't fail the cancellation process
+			log.Printf("Warning: Error updating slot status for slot ID %s: %v", bookingEntity.SlotID, err)
+		}
+
+		return &entitiesDtos.BookingResponse{
+			ID:          bookingEntity.ID,
+			SlotID:      bookingEntity.SlotID,
+			VendorID:    bookingEntity.VendorID,
+			BookingDate: bookingEntity.BookingDate,
+			Price:       bookingEntity.Price,
+			Status:      entities.StatusRefunded,
+		}, nil
+
+	case "failed":
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    409,
+			Message: fmt.Sprintf("Transaction with ID %s is already %s", transactionEntity.ID, transactionEntity.Status),
+		}
+
+	case "pending":
+		// Update transaction status to failed
+		_, err = uc.payment.UpdateTransaction(transactionEntity.ID, "failed")
+		if err != nil {
+			log.Printf("Error updating transaction status for ID %s: %v", transactionEntity.ID, err)
+			return nil, &entitiesDtos.ErrorResponse{
+				Code:    500,
+				Message: "Failed to update transaction status: " + err.Error(),
+			}
+		}
+
+		return &entitiesDtos.BookingResponse{
+			ID:          bookingEntity.ID,
+			SlotID:      bookingEntity.SlotID,
+			VendorID:    bookingEntity.VendorID,
+			BookingDate: bookingEntity.BookingDate,
+			Price:       bookingEntity.Price,
+			Status:      "CANCELLED",
+		}, nil
+
+	default:
+		return nil, &entitiesDtos.ErrorResponse{
+			Code:    409,
+			Message: fmt.Sprintf("Unexpected transaction status: %s", transactionEntity.Status),
+		}
+	}
+}
