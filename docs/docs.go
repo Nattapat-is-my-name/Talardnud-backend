@@ -10,9 +10,7 @@ const docTemplate = `{
         "description": "{{escape .Description}}",
         "title": "{{.Title}}",
         "contact": {
-            "name": "admin",
-            "url": "http://subalgo.com/support",
-            "email": "admin@subalgo.com"
+            "name": "admin"
         },
         "license": {
             "name": "Apache 2.0",
@@ -207,6 +205,58 @@ const docTemplate = `{
                 }
             }
         },
+        "/bookings/cancel": {
+            "patch": {
+                "description": "Cancel a booking with the provided data",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Cancel a booking",
+                "parameters": [
+                    {
+                        "description": "Booking data",
+                        "name": "booking",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dtos.CancelBookingRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dtos.BookingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid input",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "409": {
+                        "description": "Booking already exists",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/bookings/create": {
             "post": {
                 "description": "Create a new booking with the provided data",
@@ -290,6 +340,53 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Booking not found",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/bookings/market/{id}": {
+            "get": {
+                "description": "Get bookings by market with the provided ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "bookings"
+                ],
+                "summary": "Get bookings by market",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Market ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/entities.Booking"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bookings not found",
                         "schema": {
                             "type": "string"
                         }
@@ -1046,6 +1143,22 @@ const docTemplate = `{
                 }
             }
         },
+        "dtos.CancelBookingRequest": {
+            "type": "object",
+            "required": [
+                "booking_id"
+            ],
+            "properties": {
+                "booking_id": {
+                    "description": "The ID of the booking to be canceled.",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "Optional: The ID of the user requesting the cancellation.",
+                    "type": "string"
+                }
+            }
+        },
         "dtos.GetListMarketResponse": {
             "type": "object",
             "properties": {
@@ -1715,12 +1828,14 @@ const docTemplate = `{
             "enum": [
                 "pending",
                 "completed",
-                "failed"
+                "failed",
+                "refund"
             ],
             "x-enum-varnames": [
                 "PaymentPending",
                 "PaymentCompleted",
-                "PaymentFailed"
+                "PaymentFailed",
+                "PaymentRefunded"
             ]
         },
         "entities.Slot": {
@@ -1847,12 +1962,14 @@ const docTemplate = `{
             "enum": [
                 "pending",
                 "completed",
-                "failed"
+                "failed",
+                "refund"
             ],
             "x-enum-varnames": [
                 "TransactionPending",
                 "TransactionCompleted",
-                "TransactionFailed"
+                "TransactionFailed",
+                "TransactionRefunded"
             ]
         },
         "entities.Vendor": {
@@ -1909,7 +2026,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:3000",
+	Host:             "api.talardnad.com",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "Talardnad API",

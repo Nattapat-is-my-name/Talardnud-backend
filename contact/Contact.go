@@ -16,6 +16,7 @@ type ISlotUseCase interface {
 }
 type IBooking interface {
 	CreateBooking(booking *entities.Booking) error
+	GetBookingsByMarket(marketID string) ([]entities.Booking, error)
 	//IsBookingExists(bookingReq *entitiesDtos.BookingRequest) (bool, error)
 	GetBooking(bookingID string) (*entities.Booking, error)
 	UpdateBookingStatus(bookingID string, status entities.BookingStatus) (*entities.Booking, error)

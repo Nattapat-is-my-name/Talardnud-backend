@@ -11,17 +11,14 @@ import (
 // @version 1.0
 // @description API user management Server by Fiber | Doc by Swagger.
 // @contact.name admin
-// @contact.url http://subalgo.com/support
-// @contact.email admin@subalgo.com
 // @license.name Apache 2.0
 // @license.url http://www.apache.org/licenses/LICENSE-2.0.html
-// @host localhost:3000
+// @host api.talardnad.com
 // @BasePath /api/v1
 // @securityDefinitions.apikey BearerAuth
 // @in header
 // @name Authorization
-// @schemes http
-
+// @schemes http https
 func main() {
 	config, err := App.LoadConfig()
 	if err != nil {

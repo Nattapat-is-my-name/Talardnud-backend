@@ -63,6 +63,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	bookingGroup.Get("/get/:id", allHandlers.BookingHandler.GetBooking)
 	bookingGroup.Get("/user/:id", allHandlers.BookingHandler.GetBookingsByUser)
 	bookingGroup.Patch("/cancel", allHandlers.BookingHandler.CancelBooking)
+	bookingGroup.Get("/market/:id", allHandlers.BookingHandler.GetBookingsByMarket)
 
 	slotGroup := v1.Group("/Slots")
 	slotGroup.Post("/:marketId/create", allHandlers.SlotHandler.CreateOrUpdateLayout, providerMiddleware)

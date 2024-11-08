@@ -56,6 +56,17 @@ definitions:
       vendorId:
         type: string
     type: object
+  dtos.CancelBookingRequest:
+    properties:
+      booking_id:
+        description: The ID of the booking to be canceled.
+        type: string
+      user_id:
+        description: 'Optional: The ID of the user requesting the cancellation.'
+        type: string
+    required:
+    - booking_id
+    type: object
   dtos.GetListMarketResponse:
     properties:
       market:
@@ -524,11 +535,13 @@ definitions:
     - pending
     - completed
     - failed
+    - refund
     type: string
     x-enum-varnames:
     - PaymentPending
     - PaymentCompleted
     - PaymentFailed
+    - PaymentRefunded
   entities.Slot:
     properties:
       booking:
@@ -614,11 +627,13 @@ definitions:
     - pending
     - completed
     - failed
+    - refund
     type: string
     x-enum-varnames:
     - TransactionPending
     - TransactionCompleted
     - TransactionFailed
+    - TransactionRefunded
   entities.Vendor:
     properties:
       bookings:
@@ -646,12 +661,10 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:3000
+host: api.talardnad.com
 info:
   contact:
-    email: admin@subalgo.com
     name: admin
-    url: http://subalgo.com/support
   description: API user management Server by Fiber | Doc by Swagger.
   license:
     name: Apache 2.0
@@ -779,6 +792,40 @@ paths:
       summary: Register
       tags:
       - auth
+  /bookings/cancel:
+    patch:
+      consumes:
+      - application/json
+      description: Cancel a booking with the provided data
+      parameters:
+      - description: Booking data
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.CancelBookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.BookingResponse'
+        "400":
+          description: Invalid input
+          schema:
+            type: string
+        "409":
+          description: Booking already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Cancel a booking
+      tags:
+      - bookings
   /bookings/create:
     post:
       consumes:
@@ -840,6 +887,37 @@ paths:
           schema:
             type: string
       summary: Get a booking
+      tags:
+      - bookings
+  /bookings/market/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get bookings by market with the provided ID
+      parameters:
+      - description: Market ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/entities.Booking'
+            type: array
+        "404":
+          description: Bookings not found
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Get bookings by market
       tags:
       - bookings
   /bookings/user/{id}:

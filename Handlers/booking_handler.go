@@ -53,7 +53,47 @@ func (h *BookingHandler) CreateBooking(c *fiber.Ctx) error {
 	})
 }
 
+// GetBookingsByMarket godoc
+// @Summary Get bookings by market
+// @Description Get bookings by market with the provided ID
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param id path string true "Market ID"
+// @Success 200 {object} []entities.Booking
+// @Failure 404 {object} string "Bookings not found"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/market/{id} [get]
+func (h *BookingHandler) GetBookingsByMarket(c *fiber.Ctx) error {
+	marketID := c.Params("id")
+	bookings, errResponse := h.useCase.GetBookingsByMarket(marketID)
+	if errResponse != nil {
+		log.Printf("Failed to get bookings for market with ID %s: %v", marketID, errResponse) // Log the error details
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error":   "Failed to get bookings",
+			"details": errResponse,
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"status":  "success",
+		"message": "Bookings retrieved successfully",
+		"data":    bookings,
+	})
+}
+
 // CancelBooking godoc
+// @Summary Cancel a booking
+// @Description Cancel a booking with the provided data
+// @Tags bookings
+// @Accept  json
+// @Produce  json
+// @Param booking body dtos.CancelBookingRequest true "Booking data"
+// @Success 200 {object} dtos.BookingResponse
+// @Failure 400 {object} string "Invalid input"
+// @Failure 409 {object} string "Booking already exists"
+// @Failure 500 {object} string "Internal server error"
+// @Router /bookings/cancel [patch]
 func (h *BookingHandler) CancelBooking(c *fiber.Ctx) error {
 	var req entitiesDtos.CancelBookingRequest
 	if err := c.BodyParser(&req); err != nil {

@@ -56,6 +56,7 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 	}
 
 	expirationTime := time.Now().Add(30 * time.Minute)
+	thLocation, _ := time.LoadLocation("Asia/Bangkok")
 	bookingEntity := &entities.Booking{
 		ID:          uuid.New().String(),
 		SlotID:      bookingReq.SlotID,
@@ -82,7 +83,7 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 		Price:       bookingReq.Price,
 		Method:      bookingReq.Method,
 		Status:      entities.PaymentPending,
-		PaymentDate: time.Now(),
+		PaymentDate: time.Now().In(thLocation),
 		ExpiresAt:   expirationTime,
 	}
 
@@ -124,7 +125,7 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 		Price:           Price,
 		Image:           promptPayResult.QRResponse.Data.QRImage,
 		Status:          entities.TransactionPending,
-		TransactionDate: time.Now(),
+		TransactionDate: time.Now().In(thLocation),
 		ExpiresAt:       expirationTime,
 	}
 
@@ -172,6 +173,10 @@ func (uc *BookingUseCase) handlePayment(paymentEntity entities.Payment, paymentI
 		return entitiesDtos.PromptPayResult{}, fmt.Errorf("failed to generate PromptPay QR code: %v", errResp)
 	}
 	return *promptPayResult, nil
+}
+
+func (uc *BookingUseCase) GetBookingsByMarket(marketID string) ([]entities.Booking, error) {
+	return uc.repo.GetBookingsByMarket(marketID)
 }
 
 // validateCancelBooking validates the cancel booking request.

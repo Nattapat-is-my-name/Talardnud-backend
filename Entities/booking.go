@@ -16,8 +16,8 @@ type Booking struct {
 	Method      Method        `gorm:"type:varchar(20);not null" json:"method"`
 	Price       float64       `gorm:"type:decimal(10,2);not null" json:"price"`
 	Payment     *Payment      `gorm:"foreignKey:BookingID;references:ID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"payment"`
-	CreatedAt   time.Time     `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt   time.Time     `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt   time.Time     `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt   time.Time     `gorm:"type:timestamp;default:CURRENT_TIMESTAMP"json:"updated_at"`
 	ExpiresAt   time.Time     `gorm:"type:timestamp;not null" json:"expires_at"`
 }
 type BookingStatus string

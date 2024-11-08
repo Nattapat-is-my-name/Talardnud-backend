@@ -62,6 +62,24 @@ func (repo *BookingRepository) GetBookingsByUser(userID string) ([]entities.Book
 	return bookings, nil
 }
 
+// GetBookingsByMarket
+func (repo *BookingRepository) GetBookingsByMarket(marketID string) ([]entities.Booking, error) {
+	var bookings []entities.Booking
+
+	result := repo.db.Where("market_id = ?", marketID).Find(&bookings)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	//reload vendor
+	result = repo.db.Preload("Vendor").Where("market_id = ?", marketID).Find(&bookings)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return bookings, nil
+}
+
 func (repo *BookingRepository) UpdateBookingStatus(bookingID string, status entities.BookingStatus) (*entities.Booking, error) {
 	var booking entities.Booking
 	result := repo.db.Model(&booking).Where("ID = ?", bookingID).Update("status", status)

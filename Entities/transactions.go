@@ -18,8 +18,8 @@ type Transaction struct {
 	Ref3            string            `gorm:"type:varchar(50)" json:"ref3,omitempty"`
 	Image           string            ` gorm:"type:text" json:"image,omitempty"`
 	ExpiresAt       time.Time         `gorm:"type:timestamp;not null" json:"expires_at"`
-	CreatedAt       time.Time         `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt       time.Time         `gorm:"autoUpdateTime" json:"updated_at"`
+	CreatedAt       time.Time         `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"created_at"`
+	UpdatedAt       time.Time         `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"updated_at"`
 	DeletedAt       *time.Time        `gorm:"index" json:"deleted_at,omitempty"`
 }
 
