@@ -60,20 +60,3 @@ func (s *DashboardService) updateAllMarketStats() error {
 
 	return nil
 }
-
-func (s *DashboardService) GetDashboardData(marketID string) (*entities.DashboardResponse, error) {
-	// Get debug info
-	debugInfo := s.repo.GetDebugInfo(marketID)
-	log.Printf("Debug info for market %s: %+v", marketID, debugInfo)
-
-	data, err := s.repo.GetDashboardData(marketID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dashboard data: %v", err)
-	}
-
-	return data, nil
-}
-
-func (s *DashboardService) GetAllMarketsDashboardStats() ([]entities.MarketDashboardStats, error) {
-	return s.repo.GetAllMarketsDashboardStats()
-}

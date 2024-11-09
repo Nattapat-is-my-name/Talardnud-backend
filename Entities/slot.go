@@ -14,6 +14,7 @@ type Slot struct {
 	Price     float64    `gorm:"type:decimal(10,2);not null" json:"price"`
 	Status    SlotStatus `gorm:"type:varchar(20);not null" json:"status"`
 	Category  Category   `gorm:"type:varchar(50);not null" json:"category"`
+	Booker    string     `gorm:"type:varchar(50);not null" json:"Booker"`
 	Booking   []Booking  `gorm:"foreignKey:SlotID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"booking,omitempty"`
 	Date      string     `gorm:"type:date;not null" json:"date" validate:"required,datetime=2006-01-02"`
 	CreatedAt time.Time  `gorm:"autoCreateTime" json:"created_at"`

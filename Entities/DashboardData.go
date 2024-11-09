@@ -17,7 +17,7 @@ type MarketDashboardStats struct {
 	OccupancyRate        float64   `gorm:"type:decimal(5,2);default:0" json:"occupancy_rate"`
 	TopZone              string    `gorm:"type:varchar(50)" json:"top_zone"`
 	TopZoneOccupancy     float64   `gorm:"type:decimal(5,2);default:0" json:"top_zone_occupancy"`
-	CreatedAt            time.Time `gorm:"autoCreateTime" json:"created_at"`
+	CreatedAt            time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 type SlotNameSummary struct {
 	Name  string `json:"name"`

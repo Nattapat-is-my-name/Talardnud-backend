@@ -13,30 +13,6 @@ func NewDashboardHandler(useCase *Usecase.DashboardUseCase) *DashboardHandler {
 	return &DashboardHandler{useCase: useCase}
 }
 
-// Add a new handler for single market if needed
-func (h *DashboardHandler) GetSingleMarketStats(c *fiber.Ctx) error {
-	marketID := c.Params("id")
-	if marketID == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"status":  "error",
-			"message": "Market ID is required",
-		})
-	}
-
-	stats, err := h.useCase.GetSingleMarketStats(marketID)
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"status":  "error",
-			"message": err.Error(),
-		})
-	}
-
-	return c.JSON(fiber.Map{
-		"status": "success",
-		"data":   stats,
-	})
-}
-
 // GetWeeklyStats  godoc
 // @Summary Get weekly stats for a market
 // @Description Get weekly stats for a market with the market ID

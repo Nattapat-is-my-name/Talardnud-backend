@@ -79,8 +79,7 @@ func (s *Server) MapHandlers(allHandlers *Handlers.AllHandlers) {
 	//paymentGroup.Post("/promptPay", allHandlers.PaymentHandler.PromptPay)
 
 	dashboardGroup := v1.Group("/Dashboard")
-	//dashboardGroup.Get("/", allHandlers.DashboardHandler.GetDashboardData) // Get all markets
-	dashboardGroup.Get("/get/:id", allHandlers.DashboardHandler.GetSingleMarketStats)
+
 	dashboardGroup.Get("/weekly/:id", allHandlers.DashboardHandler.GetWeeklyStats)
 
 	ScbResponseGroup := v1.Group("/Scb")

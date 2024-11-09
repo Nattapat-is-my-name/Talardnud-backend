@@ -1,4 +1,3 @@
-// Repository/dashboard_repository.go
 package Repository
 
 import (
@@ -25,7 +24,7 @@ func (repo *DashboardRepository) UpdateDashboardStats(marketID string) error {
         WITH distinct_dates AS (
             SELECT DISTINCT 
                 market_id,
-                DATE(booking_date) as date
+                DATE(created_at) as date
             FROM bookings
         ),
         markets AS (
@@ -38,7 +37,7 @@ func (repo *DashboardRepository) UpdateDashboardStats(marketID string) error {
         booking_stats AS (
             SELECT 
                 b.market_id,
-                DATE(b.booking_date) as booking_date,
+                DATE(b.created_at) as booking_date,
                 COUNT(*) as total_bookings,
                 COUNT(CASE WHEN b.status = 'completed' THEN 1 END) as completed_bookings,
                 COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as cancelled_bookings,
@@ -51,12 +50,12 @@ func (repo *DashboardRepository) UpdateDashboardStats(marketID string) error {
                 ) as occupancy_rate
             FROM bookings b
             LEFT JOIN payments p ON b.id = p.booking_id
-            GROUP BY b.market_id, DATE(b.booking_date)
+            GROUP BY b.market_id, DATE(b.created_at)
         ),
         zone_stats AS (
             SELECT 
                 b.market_id,
-                DATE(b.booking_date) as booking_date,
+                DATE(b.created_at) as booking_date,
                 s.zone,
                 COUNT(*) as zone_bookings,
                 COUNT(CASE WHEN b.status = 'completed' THEN 1 END) as completed_in_zone,
@@ -67,7 +66,7 @@ func (repo *DashboardRepository) UpdateDashboardStats(marketID string) error {
                 ) as zone_occupancy
             FROM bookings b
             JOIN slots s ON b.slot_id = s.id
-            GROUP BY b.market_id, DATE(b.booking_date), s.zone
+            GROUP BY b.market_id, DATE(b.created_at), s.zone
         ),
         top_zones AS (
             SELECT DISTINCT ON (market_id, booking_date)
@@ -155,234 +154,60 @@ func (repo *DashboardRepository) UpdateDashboardStats(marketID string) error {
 	return nil
 }
 
-func (repo *DashboardRepository) GetDashboardData(marketID string) (*entities.DashboardResponse, error) {
-	// First try to update stats
-	if err := repo.UpdateDashboardStats(marketID); err != nil {
-		log.Printf("Warning: Failed to update stats: %v", err)
-	}
+const mondayOffsetWhenSunday = -6
 
-	var stats entities.MarketDashboardStats
-	currentDate := time.Now().Truncate(24 * time.Hour)
-
-	err := repo.db.Where("market_id = ? AND date = ?",
-		marketID,
-		currentDate,
-	).First(&stats).Error
-
-	if err != nil {
-		if err == gorm.ErrRecordNotFound {
-			// Initialize with zero values if no record exists
-			stats = entities.MarketDashboardStats{
-				MarketID:      marketID,
-				Date:          currentDate,
-				TotalBookings: 0,
-				BookingGrowth: 0,
-				TotalRevenue:  0,
-				RevenueGrowth: 0,
-				CreatedAt:     time.Now(),
-			}
-
-			if err := repo.db.Create(&stats).Error; err != nil {
-				return nil, fmt.Errorf("failed to create initial stats: %v", err)
-			}
-		} else {
-			return nil, fmt.Errorf("failed to get dashboard data: %v", err)
-		}
-	}
-
-	return &entities.DashboardResponse{
-		Stats: []entities.MarketDashboardStats{stats},
-	}, nil
-
-}
-
-func (repo *DashboardRepository) GetAllMarketsDashboardStats() ([]entities.MarketDashboardStats, error) {
-	// Get all markets first
-	var marketIDs []string
-	err := repo.db.Model(&entities.Market{}).
-		Select("id").
-		Pluck("id", &marketIDs).Error
-	if err != nil {
-		return nil, fmt.Errorf("failed to get market IDs: %v", err)
-	}
-
-	// Define date range
-	endDate := time.Now().Truncate(24 * time.Hour)
-	startDate := endDate.AddDate(0, 0, -30) // Last 30 days
-
-	query := `
-        WITH dates AS (
-            SELECT generate_series(
-                ?::date, 
-                ?::date, 
-                '1 day'::interval
-            )::date AS date
-        ),
-        markets AS (
-            SELECT id AS market_id FROM markets
-        ),
-        market_dates AS (
-            SELECT m.market_id, d.date
-            FROM markets m
-            CROSS JOIN dates d
-        ),
-        booking_stats AS (
-            SELECT 
-                b.market_id,
-                DATE(b.booking_date) as booking_date,
-                COUNT(*) as total_bookings,
-                COUNT(CASE WHEN b.status = 'completed' THEN 1 END) as completed_bookings,
-                COUNT(CASE WHEN b.status = 'cancelled' THEN 1 END) as cancelled_bookings,
-                COALESCE(SUM(CASE WHEN b.status = 'completed' AND p.status = 'completed' 
-                    THEN p.price ELSE 0 END), 0) as total_revenue,
-                COALESCE(
-                    (COUNT(CASE WHEN b.status = 'completed' THEN 1 END) * 100.0 / 
-                    NULLIF(COUNT(*), 0)),
-                    0
-                ) as occupancy_rate
-            FROM bookings b
-            LEFT JOIN payments p ON b.id = p.booking_id
-            WHERE DATE(b.booking_date) BETWEEN ? AND ?
-            GROUP BY b.market_id, DATE(b.booking_date)
-        )
-        SELECT 
-            md.market_id,
-            md.date,
-            COALESCE(bs.total_bookings, 0) as total_bookings,
-            COALESCE(bs.completed_bookings, 0) as total_confirm_bookings,
-            COALESCE(bs.cancelled_bookings, 0) as total_cancel_bookings,
-            COALESCE(bs.total_revenue, 0) as total_revenue,
-            COALESCE(bs.occupancy_rate, 0) as occupancy_rate,
-            COALESCE(
-                (SELECT zone 
-                 FROM slots s
-                 JOIN bookings b ON s.id = b.slot_id
-                 WHERE b.market_id = md.market_id 
-                 AND DATE(b.booking_date) = md.date
-                 GROUP BY zone
-                 ORDER BY COUNT(*) DESC
-                 LIMIT 1), 
-                ''
-            ) as top_zone,
-            COALESCE(
-                (SELECT COUNT(CASE WHEN b.status = 'completed' THEN 1 END) * 100.0 / 
-                        NULLIF(COUNT(*), 0)
-                 FROM slots s
-                 JOIN bookings b ON s.id = b.slot_id
-                 WHERE b.market_id = md.market_id 
-                 AND DATE(b.booking_date) = md.date
-                 GROUP BY zone
-                 ORDER BY COUNT(*) DESC
-                 LIMIT 1), 
-                0
-            ) as top_zone_occupancy
-        FROM market_dates md
-        LEFT JOIN booking_stats bs ON 
-            md.market_id = bs.market_id AND 
-            md.date = bs.booking_date
-        ORDER BY md.market_id, md.date DESC
-    `
-
-	var stats []entities.MarketDashboardStats
-	err = repo.db.Raw(query,
-		startDate, endDate, // for date range
-		startDate, endDate, // for booking_stats
-	).Scan(&stats).Error
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to get all markets stats: %v", err)
-	}
-
-	// Calculate growth rates
-	for i := range stats {
-		if i > 0 && stats[i].MarketID == stats[i-1].MarketID {
-			// Calculate booking growth
-			if stats[i-1].TotalConfirmBookings > 0 {
-				stats[i].BookingGrowth = ((float64(stats[i].TotalConfirmBookings) - float64(stats[i-1].TotalConfirmBookings)) /
-					float64(stats[i-1].TotalConfirmBookings)) * 100
-			}
-
-			// Calculate revenue growth
-			if stats[i-1].TotalRevenue > 0 {
-				stats[i].RevenueGrowth = ((stats[i].TotalRevenue - stats[i-1].TotalRevenue) /
-					stats[i-1].TotalRevenue) * 100
-			}
-		}
-	}
-
-	return stats, nil
-}
-func (repo *DashboardRepository) GetDebugInfo(marketID string) map[string]interface{} {
-	currentDate := time.Now().Truncate(24 * time.Hour)
-	debug := make(map[string]interface{})
-
-	// Count total bookings
-	var totalBookings int64
-	repo.db.Model(&entities.Booking{}).
-		Where("market_id = ? AND DATE(booking_date) = ?", marketID, currentDate).
-		Count(&totalBookings)
-	debug["total_bookings"] = totalBookings
-
-	// Count completed bookings
-	var completedBookings int64
-	repo.db.Model(&entities.Booking{}).
-		Where("market_id = ? AND DATE(booking_date) = ? AND status = ?",
-			marketID, currentDate, "completed").
-		Count(&completedBookings)
-	debug["completed_bookings"] = completedBookings
-
-	// Get total revenue from completed bookings
-	var totalRevenue float64
-	repo.db.Model(&entities.Booking{}).
-		Joins("LEFT JOIN payments ON bookings.id = payments.booking_id").
-		Where("bookings.market_id = ? AND DATE(bookings.booking_date) = ? AND bookings.status = ? AND payments.status = ?",
-			marketID, currentDate, "completed", "completed").
-		Select("COALESCE(SUM(payments.price), 0)").
-		Scan(&totalRevenue)
-	debug["total_revenue"] = totalRevenue
-
-	// Get previous day stats for growth calculation
-	previousDate := currentDate.AddDate(0, 0, -1)
-	var prevStats entities.MarketDashboardStats
-	repo.db.Where("market_id = ? AND date = ?", marketID, previousDate).
-		First(&prevStats)
-	debug["previous_day_bookings"] = prevStats.TotalBookings
-	debug["previous_day_revenue"] = prevStats.TotalRevenue
-
-	return debug
-}
 func (repo *DashboardRepository) GetWeeklyStats(marketID string) ([]entities.MarketDashboardStats, error) {
 	// Load Bangkok time zone
 	bangkokLocation, err := time.LoadLocation("Asia/Bangkok")
 	if err != nil {
-		return nil, fmt.Errorf("failed to load Bangkok location: %v", err)
+		return nil, fmt.Errorf("failed to load Bangkok time zone: %v", err)
 	}
 
 	// Get today's date at midnight in Bangkok time
 	now := time.Now().In(bangkokLocation)
-	today := time.Date(now.Year(), now.Month(), now.Day()-2, 0, 0, 0, 0, bangkokLocation)
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, bangkokLocation)
 	weekday := today.Weekday()
 
 	// Calculate the start of the current calendar week (Monday) in Bangkok time
 	offsetToMonday := int(time.Monday - weekday)
 	if offsetToMonday > 0 {
-		offsetToMonday = -6 // Adjust to previous Monday if today is Sunday
+		offsetToMonday = mondayOffsetWhenSunday
 	}
-	startDate := today.AddDate(0, 0, offsetToMonday)
-	endDate := today // Set endDate as today to include data up to the current day of the week
+	startDate := today.AddDate(0, 0, int(time.Monday-weekday))
+	endDate := startDate.AddDate(0, 0, 6) // Set endDate to the end of the current week (Sunday)
 
 	// Log for debugging
-	fmt.Printf("Today is: %s\nWeekday is: %s\n", today, weekday)
-	fmt.Printf("Querying for market %s between %s (Monday) and %s (Today)\n", marketID, startDate, endDate)
+	fmt.Printf("Today is: %s\nWeekday is: %s\n", today.Format("2006-01-02"), weekday)
+	fmt.Printf("Querying for market %s between %s (Monday) and %s (Sunday)\n", marketID, startDate.Format("2006-01-02"), endDate.Format("2006-01-02"))
 
 	// Query for stats within the date range for the specified market
 	var stats []entities.MarketDashboardStats
-	err = repo.db.Where("market_id = ? AND date BETWEEN ? AND ?", marketID, startDate, endDate).
+	err = repo.db.Where("market_id = ? AND created_at BETWEEN ? AND ?", marketID, startDate, endDate).
 		Order("date ASC"). // Order by date in ascending order
 		Find(&stats).Error
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to get weekly stats for market %s: %v", marketID, err)
+		return nil, fmt.Errorf("failed to get weekly stats: %v", err)
+	}
+
+	// If no data for the current week, create a placeholder
+	if len(stats) == 0 {
+		stats = []entities.MarketDashboardStats{
+			{
+				MarketID:             marketID,
+				Date:                 startDate,
+				TotalBookings:        0,
+				TotalConfirmBookings: 0,
+				TotalCancelBookings:  0,
+				BookingGrowth:        0,
+				TotalRevenue:         0,
+				RevenueGrowth:        0,
+				OccupancyRate:        0,
+				TopZone:              "",
+				TopZoneOccupancy:     0,
+				CreatedAt:            time.Now(),
+			},
+		}
 	}
 
 	return stats, nil

@@ -544,6 +544,8 @@ definitions:
     - PaymentRefunded
   entities.Slot:
     properties:
+      Booker:
+        type: string
       booking:
         items:
           $ref: '#/definitions/entities.Booking'

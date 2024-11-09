@@ -56,18 +56,3 @@ func (uc *DashboardUseCase) GetWeeklyData(marketID string) (*entities.DashboardR
 		Stats: weeklyStats, // Assigns the retrieved weekly stats directly
 	}, nil
 }
-
-// If you need to get stats for a single market, add this method
-func (uc *DashboardUseCase) GetSingleMarketStats(marketID string) (*entities.DashboardResponse, error) {
-	// Update stats for this market
-	if err := uc.repo.UpdateDashboardStats(marketID); err != nil {
-		return nil, fmt.Errorf("failed to update market stats: %v", err)
-	}
-
-	Stats, err := uc.repo.GetDashboardData(marketID)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get dashboard data: %v", err)
-	}
-
-	return Stats, nil
-}

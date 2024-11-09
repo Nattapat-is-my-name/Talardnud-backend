@@ -1844,6 +1844,9 @@ const docTemplate = `{
                 "date"
             ],
             "properties": {
+                "Booker": {
+                    "type": "string"
+                },
                 "booking": {
                     "type": "array",
                     "items": {
