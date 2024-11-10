@@ -12,7 +12,7 @@ type IBookingService interface {
 }
 
 type ISlotUseCase interface {
-	UpdateSlotStatus(slotID string, status entities.SlotStatus) (*entities.Slot, *entitiesDtos.ErrorResponse)
+	UpdateSlotStatus(slotID, vendorID string, status entities.SlotStatus) (*entities.Slot, *entitiesDtos.ErrorResponse)
 }
 type IBooking interface {
 	CreateBooking(booking *entities.Booking) error

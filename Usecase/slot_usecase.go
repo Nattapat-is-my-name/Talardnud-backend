@@ -278,9 +278,9 @@ func (su *SlotUseCase) GetSlotsByDate(marketID string, date string) ([]*entities
 	return slots, nil
 }
 
-func (su *SlotUseCase) UpdateSlotStatus(slotID string, status entities.SlotStatus) (*entities.Slot, *entitiesDtos.ErrorResponse) {
+func (su *SlotUseCase) UpdateSlotStatus(slotID, vendorID string, status entities.SlotStatus) (*entities.Slot, *entitiesDtos.ErrorResponse) {
 	// Call the repository method to update the slot status
-	if err := su.repo.UpdateSlotStatus(slotID, status); err != nil {
+	if err := su.repo.UpdateSlotStatus(slotID, vendorID, status); err != nil {
 		return nil, &entitiesDtos.ErrorResponse{
 			Code:    500,
 			Message: "Failed to update slot status: " + err.Error(),

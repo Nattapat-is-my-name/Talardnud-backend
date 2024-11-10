@@ -147,9 +147,24 @@ func (repo *SlotRepository) DeleteSlotByDateAndZone(markeID, zoneID, date string
 	return nil
 }
 
-func (repo *SlotRepository) UpdateSlotStatus(slotID string, status entities.SlotStatus) error {
+func (repo *SlotRepository) UpdateSlotStatus(slotID, vendorID string, status entities.SlotStatus) error {
+	updates := entities.Slot{Status: status}
+
+	// Only set BookerName if vendorID is not empty
+	if vendorID != "" {
+		var vendor entities.Vendor
+		vendorEntity := repo.db.Where("ID = ?", vendorID).First(&vendor)
+		if vendorEntity.Error != nil {
+			return vendorEntity.Error
+		}
+		updates.Booker = vendor.Username
+	} else {
+		// Clear BookerName when vendorID is empty
+		updates.Booker = ""
+	}
+
 	var slot entities.Slot
-	result := repo.db.Model(&slot).Where("ID = ?", slotID).Update("status", status)
+	result := repo.db.Model(&slot).Where("ID = ?", slotID).Updates(updates)
 
 	if result.Error != nil {
 		return result.Error

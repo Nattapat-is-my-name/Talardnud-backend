@@ -152,7 +152,7 @@ func (uc *BookingUseCase) CreateBooking(bookingReq *entitiesDtos.BookingRequest)
 	}
 
 	// Schedule booking cancellation using BookingService
-	uc.bookingService.ScheduleBookingCancellation(transaction.ID, bookingEntity.ID, bookingEntity.SlotID, expirationTime)
+	uc.bookingService.ScheduleBookingCancellation(transaction.ID, bookingEntity.ID, bookingEntity.SlotID, bookingEntity.VendorID, expirationTime)
 
 	return &bookingResponse, nil
 }
@@ -318,7 +318,7 @@ func (uc *BookingUseCase) CancelBooking(cancelBookingReq *entitiesDtos.CancelBoo
 		}
 
 		// Update slot status to available
-		_, err = uc.slotUseCase.UpdateSlotStatus(bookingEntity.SlotID, entities.StatusAvailable)
+		_, err = uc.slotUseCase.UpdateSlotStatus(bookingEntity.SlotID, cancelBookingReq.VendorID, entities.StatusAvailable)
 		if err != nil {
 			// Log the error but don't fail the cancellation process
 			log.Printf("Warning: Error updating slot status for slot ID %s: %v", bookingEntity.SlotID, err)

@@ -27,8 +27,8 @@ func NewBookingService(repo contact.IBooking, payment contact.IPayment, slotUseC
 	}
 }
 
-func (s *BookingService) ScheduleBookingCancellation(transactionID, bookingID, slotID string, expiresAt time.Time) {
-	job, err := s.scheduler.Every(30).Second().StartAt(time.Now()).Do(s.checkBookingStatus, transactionID, bookingID, slotID, expiresAt)
+func (s *BookingService) ScheduleBookingCancellation(transactionID, bookingID, slotID, vendorID string, expiresAt time.Time) {
+	job, err := s.scheduler.Every(30).Second().StartAt(time.Now()).Do(s.checkBookingStatus, transactionID, bookingID, slotID, vendorID, expiresAt)
 	if err != nil {
 		log.Printf("Error scheduling booking status check: %v", err)
 		return
@@ -44,7 +44,7 @@ func (s *BookingService) RemoveScheduled(bookingID string) {
 
 }
 
-func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID string, expiresAt time.Time) {
+func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID, vendorID string, expiresAt time.Time) {
 	transaction, err := s.payment.GetTransactionByID(transactionID)
 	if err != nil {
 		log.Printf("Error fetching transaction for cancellation: %v", err)
@@ -66,7 +66,7 @@ func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID str
 
 	case entities.TransactionCompleted:
 		if time.Now().Before(expiresAt) {
-			err := s.completeBooking(transactionID, transaction.PaymentID, bookingID, slotID)
+			err := s.completeBooking(transactionID, transaction.PaymentID, bookingID, slotID, vendorID)
 			if err != nil {
 				log.Printf("Error completing booking: %v", err)
 				return
@@ -88,7 +88,7 @@ func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID str
 
 	case entities.TransactionRefunded:
 		if time.Now().Before(expiresAt) {
-			err := s.RefundBooking(transactionID, transaction.PaymentID, bookingID, slotID)
+			err := s.RefundBooking(transactionID, transaction.PaymentID, bookingID, slotID, "")
 			if err != nil {
 				log.Printf("Error cancelling refunded booking: %v", err)
 				return
@@ -101,7 +101,7 @@ func (s *BookingService) checkBookingStatus(transactionID, bookingID, slotID str
 
 }
 
-func (s *BookingService) RefundBooking(transactionID, bookingID, paymentID, slotID string) error {
+func (s *BookingService) RefundBooking(transactionID, bookingID, paymentID, slotID, vendorID string) error {
 
 	if _, err := s.payment.UpdateTransaction(transactionID, entities.TransactionRefunded); err != nil {
 		return fmt.Errorf("error updating transaction status: %v", err)
@@ -115,7 +115,7 @@ func (s *BookingService) RefundBooking(transactionID, bookingID, paymentID, slot
 		return fmt.Errorf("error updating payment status: %v", err)
 	}
 
-	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, entities.StatusAvailable); err != nil {
+	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, vendorID, entities.StatusAvailable); err != nil {
 		return fmt.Errorf("error updating slot status: %v", err)
 	}
 
@@ -140,7 +140,7 @@ func (s *BookingService) cancelExpiredBooking(transactionID, paymentID, bookingI
 	return nil
 }
 
-func (s *BookingService) completeBooking(transactionID, paymentID, bookingID, slotID string) error {
+func (s *BookingService) completeBooking(transactionID, paymentID, bookingID, slotID, vendorID string) error {
 	if _, err := s.payment.UpdateTransaction(transactionID, entities.TransactionCompleted); err != nil {
 		return fmt.Errorf("error updating transaction status: %v", err)
 	}
@@ -153,7 +153,7 @@ func (s *BookingService) completeBooking(transactionID, paymentID, bookingID, sl
 		return fmt.Errorf("error updating payment status: %v", err)
 	}
 
-	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, entities.StatusBooked); err != nil {
+	if _, err := s.slotUseCase.UpdateSlotStatus(slotID, vendorID, entities.StatusBooked); err != nil {
 		return fmt.Errorf("error updating slot status: %v", err)
 	}
 	s.RemoveScheduled(bookingID)

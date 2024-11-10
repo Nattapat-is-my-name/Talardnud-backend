@@ -8,7 +8,7 @@ type ISlot interface {
 	GetSlots(slotID string) (*entities.Slot, error)
 	CheckMarketExists(marketID string) (bool, error)
 	GetSlotsByDate(marketID, date string) ([]*entities.Slot, error)
-	UpdateSlotStatus(slotID string, status entities.SlotStatus) error
+	UpdateSlotStatus(slotID, vendorID string, status entities.SlotStatus) error
 	GetProviderSlots(marketID string) ([]*entities.Slot, error)
 	GetSlotsByMarketID(marketID string) ([]*entities.Slot, error)
 	UpdateSlot(slot *entities.Slot) (*entities.Slot, error)

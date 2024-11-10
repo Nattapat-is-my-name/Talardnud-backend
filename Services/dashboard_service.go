@@ -28,7 +28,7 @@ func NewDashboardService(repo *Repository.DashboardRepository) *DashboardService
 
 func (s *DashboardService) startScheduler() {
 	// Update stats every hour
-	_, err := s.scheduler.Every(1).Hour().Do(func() {
+	_, err := s.scheduler.Every(1).Minute().Do(func() {
 		log.Println("Running scheduled dashboard update")
 		if err := s.updateAllMarketStats(); err != nil {
 			log.Printf("Scheduled update failed: %v", err)
