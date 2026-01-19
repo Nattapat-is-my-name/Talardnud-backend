@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: tln-backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./App/.env:/app/.env
+    environment:
+      - FIBER_HOST=0.0.0.0
+      - DB_HOST=postgres
+      
+    depends_on:
+      - postgres
+    networks:
+      - talardnud-network
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: tln-database
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - talardnud-network
+    restart: unless-stopped
+
+networks:
+  talardnud-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

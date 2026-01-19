@@ -1,8 +1,6 @@
 package App
 
 import (
-	"github.com/joho/godotenv"
-	"gorm.io/gorm"
 	"log"
 	"os"
 	"tln-backend/Config"
@@ -12,6 +10,9 @@ import (
 	"tln-backend/Server"
 	"tln-backend/Services"
 	"tln-backend/Usecase"
+
+	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 )
 
 func LoadConfig() (*Config.Configs, error) {

@@ -2,11 +2,12 @@ package Database
 
 import (
 	"fmt"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 	"os"
 	entities "tln-backend/Entities"
 	"tln-backend/Entities/dtos"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func NewDB() (*gorm.DB, error) {
@@ -20,6 +21,8 @@ func NewDB() (*gorm.DB, error) {
 		os.Getenv("DB_SSLMODE"),
 	)
 
+	fmt.Println("Connecting to database with DSN:", dsn)
+
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return nil, err
@@ -29,7 +32,6 @@ func NewDB() (*gorm.DB, error) {
 		&entities.Vendor{},
 		&entities.MarketDashboardStats{},
 		&entities.LoginRequest{},
-
 
 		&dtos.RegisterRequest{},
 		&entities.MarketProvider{},
